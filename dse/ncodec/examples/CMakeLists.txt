@@ -5,6 +5,7 @@
 
 # Example Models.
 add_subdirectory(codec)
+add_subdirectory(fmpy)
 
 # Code examples for documentation.
 #if(UNIX)
