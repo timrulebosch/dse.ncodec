@@ -1,8 +1,11 @@
+# Copyright 2025 Robert Bosch GmbH
+# SPDX-License-Identifier: Apache-2.0
+
+import base64
 import ctypes
 from ctypes import *
 from fmpy import simulate_fmu, read_model_description, extract
 from fmpy.fmi2 import FMU2Slave
-import base64
 
 
 # Global objects:
@@ -15,18 +18,18 @@ network_tx_ref = None
 # Setup the NCodec DLL:
 ncodecDLL = ctypes.CDLL("lib/libncodec.so")
 ncodecDLL.ncodec_open_with_stream.argtypes = [POINTER(c_char)]
-ncodecDLL.ncodec_open_with_stream.restype = POINTER(c_void)
-ncodecDLL.ncodec_write_pdu_msg.argtypes = [POINTER(c_void),c_uint32, POINTER(c_uint8), c_size_t]
+ncodecDLL.ncodec_open_with_stream.restype = c_void_p
+ncodecDLL.ncodec_write_pdu_msg.argtypes = [c_void_p,c_uint32, POINTER(c_uint8), c_size_t]
 ncodecDLL.ncodec_write_pdu_msg.restype = c_int64
-ncodecDLL.ncodec_read_pdu_msg.argtypes = [POINTER(c_void), POINTER(c_uint32), POINTER(POINTER(c_uint8)), POINTER(c_size_t)]
+ncodecDLL.ncodec_read_pdu_msg.argtypes = [c_void_p, POINTER(c_uint32), POINTER(POINTER(c_uint8)), POINTER(c_size_t)]
 ncodecDLL.ncodec_read_pdu_msg.restype = c_int64
-ncodecDLL.ncodec_write_stream.argtypes = [POINTER(c_void), POINTER(c_uint8), c_size_t]
+ncodecDLL.ncodec_write_stream.argtypes = [c_void_p, POINTER(c_uint8), c_size_t]
 ncodecDLL.ncodec_write_stream.restype = c_int64
-ncodecDLL.ncodec_read_stream.argtypes = [POINTER(c_void), POINTER(POINTER(c_uint8))]
+ncodecDLL.ncodec_read_stream.argtypes = [c_void_p, POINTER(POINTER(c_uint8))]
 ncodecDLL.ncodec_read_stream.restype = c_size_t
 ncodecDLL.ncodec_free.argtypes = [POINTER(c_uint8)]
 ncodecDLL.ncodec_free.restype = None
-ncodecDLL.ncodec_close.argtypes = [POINTER(c_void)]
+ncodecDLL.ncodec_close.argtypes = [c_void_p]
 ncodecDLL.ncodec_close.restype = None
 
 
@@ -45,8 +48,7 @@ def do_network():
     id = c_uint32()
     payload = POINTER(c_uint8)()
     payload_len = c_size_t()
-    frame_type = c_uint32()
-    rc = ncodecDLL.ncodec_read_pdu_msg(nc, byref(id), byref(payload), byref(payload_len), byref(frame_type))
+    rc = ncodecDLL.ncodec_read_pdu_msg(nc, byref(id), byref(payload), byref(payload_len))
     print(f"FMU Tx ({id}): {' '.join(f'{x:02X}' for x in payload)} (len={payload_len})")
     # TODO while loop rc > 0
     ncodecDLL.ncodec_free(payload)
@@ -100,7 +102,6 @@ def simulation_instantiate():
     fmu.enterInitializationMode()
     fmu.exitInitializationMode()
 
-    # Setup NCodec:
     global nc
     nc = ncodecDLL.ncodec_open_with_stream("application/x-automotive-bus; interface=stream; type=pdu; schema=fbs; swc_id=23; ecu_id=5")
 
