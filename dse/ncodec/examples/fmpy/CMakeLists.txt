@@ -3,23 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.21)
-
-
 project(python_ncodec)
-set(EXAMPLE_PATH "examples/fmpy")
 
-# set(CMAKE_VERBOSE_MAKEFILE ON)
+set(EXAMPLE_PATH "examples/fmpy")
 set(FLATCC_SOURCE_DIR  ${DSE_NCODEC_SOURCE_DIR}/schema/abs/flatcc/src)
 set(FLATCC_INCLUDE_DIR ${DSE_NCODEC_SOURCE_DIR}/schema/abs/flatcc/include)
 
-
-# Targets
-# =======
-
-# Target - NCodec
-# ---------------
 add_library(ncodec SHARED
-    ascii85.c
     ncodec.c
     ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
@@ -33,6 +23,7 @@ add_library(ncodec SHARED
 target_include_directories(ncodec
     PRIVATE
         ${DSE_NCODEC_INCLUDE_DIR}
+        ${DSE_CLIB_INCLUDE_DIR}
         ${FLATCC_INCLUDE_DIR}
 )
 install(TARGETS ncodec

@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <dse/platform.h>
 #include <dse/ncodec/codec.h>
 #include <dse/ncodec/stream/stream.h>
@@ -20,30 +21,28 @@ DLL_PUBLIC void* ncodec_open_with_stream(const char* mime_type)
     return (void*)nc;
 }
 
-DLL_PUBLIC int64_t ncodec_write_can_msg(
-    void* nc, uint32_t frame_id, uint8_t* buffer, size_t len, uint8_t frame_type)
+DLL_PUBLIC int64_t ncodec_write_pdu_msg(
+    void* nc, uint32_t id, uint8_t* payload, size_t payload_len)
 {
-    return ncodec_write(nc, &(struct NCodecCanMessage){
-        .frame_id = frame_id,
-        .frame_type = frame_type,
-        .buffer = buffer,
-        .len = len
+    return ncodec_write(nc, &(struct NCodecPdu){
+        .id = id,
+        .payload = payload,
+        .payload_len = payload_len
     });
 }
 
-DLL_PUBLIC int64_t ncodec_read_can_msg(void* nc,
-    uint32_t* frame_id, uint8_t** buffer, size_t* len, uint8_t* frame_type)
+DLL_PUBLIC int64_t ncodec_read_pdu_msg(void* nc,
+    uint32_t* id, uint8_t** payload, size_t* payload_len)
 {
-    NCodecCanMessage msg = {};
+    NCodecPdu msg = {};
     int64_t          rc = ncodec_read(nc, &msg);
     if (rc > 0) {
-        *frame_id = msg.frame_id;
-        *buffer = malloc(msg.len);
-        memcpy(*buffer, msg.buffer);
-        *len = msg.len;
-        *frame_type = msg.frame_type;
+        *id = msg.id;
+        *payload = malloc(msg.payload_len);
+        memcpy(*payload, msg.payload, msg.payload_len);
+        *payload_len = msg.payload_len;
     }
-    return rc
+    return rc;
 }
 
 DLL_PUBLIC int64_t ncodec_write_stream(void* nc, uint8_t* buffer, size_t len)
