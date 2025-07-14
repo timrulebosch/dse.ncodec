@@ -14,7 +14,7 @@ ABS_VERSION ?= 1.0.6
 export ABS_URL ?= $(ABS_REPO)/releases/download/v$(ABS_VERSION)/automotive-bus-schema.tar.gz
 
 DSE_CLIB_REPO ?= https://github.com/boschglobal/dse.clib
-DSE_CLIB_VERSION ?= 1.0.30
+DSE_CLIB_VERSION ?= 1.0.31
 export DSE_CLIB_URL ?= $(DSE_CLIB_REPO)/archive/refs/tags/v$(DSE_CLIB_VERSION).zip
 
 
@@ -106,6 +106,7 @@ do-update:
 	mkdir -p $(SRC_DIR)/schema/abs
 	cp -rv $(EXTERNAL_BUILD_DIR)/automotive-bus-schema/flatbuffers/c/automotive_bus_schema/* $(SRC_DIR)/schema/abs
 	cp $(EXTERNAL_BUILD_DIR)/dse.clib/dse/platform.h $(NAMESPACE)/platform.h
+	cp $(EXTERNAL_BUILD_DIR)/dse.clib/dse/clib/util/ascii85.c $(NAMESPACE)/ncodec/stream/ascii85.c
 
 do-clean:
 	@for d in $(SUBDIRS); do ($(MAKE) -C $$d clean ); done

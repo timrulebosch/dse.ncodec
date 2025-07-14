@@ -5,6 +5,7 @@
 
 # Example Models.
 add_subdirectory(codec)
+add_subdirectory(ab-codec-fmi)
 
 # Code examples for documentation.
 #if(UNIX)

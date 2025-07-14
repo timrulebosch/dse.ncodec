@@ -11,6 +11,19 @@ SPDX-License-Identifier: Apache-2.0
 ![GitHub](https://img.shields.io/github/license/boschglobal/dse.ncodec)
 
 
+* [Architecture Overview](#architecture-overview)
+* [Simplified API Example](#api-example)
+* [Project Structure](#architecture-overview)
+* Examples:
+  * [Generalised example of Codec API Interfaces](dse/ncodec/examples/codec/README.md)
+  * [Integration for AB Codec with PDU Stream and FMI 2 String Variables](dse/ncodec/examples/ab-codec-fmi/README.md)
+* Codecs:
+  * [AB Codec - PDU & Frame Schemas with Stream Interfaces; for Automotive Bus Networks](#automotive-bus-codec)
+* Integrations:
+  * [DSE Model C - AB Codec with custom stream implementation](https://github.com/boschglobal/dse.modelc/blob/main/dse/modelc/model/ncodec.c) (additional [trace](https://github.com/boschglobal/dse.modelc/blob/main/dse/modelc/model/trace.c) code)
+  * [DSE FMI - AB Codec with specialised integration and tracing support](https://github.com/boschglobal/dse.fmi/blob/main/dse/fmu/ncodec.c)
+
+
 ## Introduction
 
 The Network Codec Library of the Dynamic Simulation Environment (DSE) Core
@@ -22,6 +35,8 @@ A Codec implementation representing the [Automotive Bus
 Schema](https://github.com/boschglobal/automotive-bus-schema/blob/main/schemas/stream/frame.fbs)
 is included with the library, as well as supporting [API
 documentation](https://boschglobal.github.io/dse.doc/apis/ncodec).
+
+
 
 
 ### Architecture Overview
@@ -59,12 +74,13 @@ doc/                        <-- Documentation including generated content.
 dse
 └── ncodec
     └── codec/ab
-    │   ├── codec.c         <-- Automotive-Bus Codec implementation.
-    │   ├── codec.h         <-- Automotive-Bus Codec headers.
+    │   ├── codec.c         <-- Automotive-Bus (AB) Codec implementation.
+    │   ├── codec.h         <-- Automotive-Bus (AB) Codec headers.
     │   ├── frame_fbs.c     <-- Frame stream (CAN etc w. Flatbuffers encoding).
     │   └── pdu_fbs.c       <-- PDU stream (CAN/IP/SOMEIP etc w. Flatbuffers encoding).
     ├── examples
-    │   └── codec/          <-- Codec example (generic implementation).
+    │   └── codec/          <-- Codec example (generic API implementation).
+    │   └── ab-codec-fmi/   <-- AB Codec basis integration for FMI (esp. FMI 2).
     ├── schema
     │   └── abs/            <-- Automotive-Bus-Schema generated code.
     ├── stream
