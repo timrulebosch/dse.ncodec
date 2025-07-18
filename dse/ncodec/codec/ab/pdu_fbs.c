@@ -7,6 +7,7 @@
 #include <string.h>
 #include <dse/ncodec/codec.h>
 #include <dse/ncodec/codec/ab/codec.h>
+#include <dse/ncodec/interface/pdu.h>
 #include <dse/ncodec/schema/abs/stream/pdu_builder.h>
 
 

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <dse/ncodec/codec.h>
+#include <dse/ncodec/interface/frame.h>
 
 
 #define UNUSED(x) ((void)x)
