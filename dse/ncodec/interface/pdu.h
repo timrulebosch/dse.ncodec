@@ -176,14 +176,14 @@ typedef enum {
 } NCodecPduFlexrayChannelStatus;
 
 typedef enum {
-    NCodecPduFlexrayTransceiverStateNoConnection = 0,
-    NCodecPduFlexrayTransceiverStateNoSignal = 1,
-    NCodecPduFlexrayTransceiverStateCAS = 2,
-    NCodecPduFlexrayTransceiverStateWUP = 3,
-    NCodecPduFlexrayTransceiverStateFrameSync = 4,
-    NCodecPduFlexrayTransceiverStateFrameError = 5,
-}
-NCodecPduFlexrayTransceiverState;
+    NCodecPduFlexrayTransceiverStateNoState = 0, /* Failed read. */
+    NCodecPduFlexrayTransceiverStateNoConnection = 1,
+    NCodecPduFlexrayTransceiverStateNoSignal = 2,
+    NCodecPduFlexrayTransceiverStateCAS = 3,
+    NCodecPduFlexrayTransceiverStateWUP = 4,
+    NCodecPduFlexrayTransceiverStateFrameSync = 5,
+    NCodecPduFlexrayTransceiverStateFrameError = 6,
+} NCodecPduFlexrayTransceiverState;
 
 typedef enum {
     NCodecPduFlexrayStatusPocConfig = 0,
@@ -221,6 +221,8 @@ typedef enum {
 typedef struct NCodecPduFlexrayLpdu {
     uint8_t cycle; /* 0..63 */
     bool    null_frame;
+    bool    sync_frame;
+    bool    startup_frame;
 
     /* LPDU transmission status. */
     NCodecPduFlexrayLpduStatus status;
@@ -280,7 +282,6 @@ typedef struct NCodecPduFlexrayConfig {
         NCodecPduFlexrayLpdu* table;
         size_t                count;
     } frame_config;
-
 } NCodecPduFlexrayConfig;
 
 typedef struct NCodecPduFlexrayStatus {

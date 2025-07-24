@@ -44,6 +44,7 @@ typedef struct FlexrayLpdu {
     const uint8_t* payload;
     uint8_t        payload_len;
     bool           null_frame;
+    bool           startup_frame;
 } FlexrayLpdu;
 static void flexray_tx(FlexrayLpdu* lpdu)
 {
@@ -56,7 +57,7 @@ static FlexrayLpdu* flexray_rx(void)
         .payload = NULL,
         .payload_len = 0,
         .null_frame = true };
-    return (rand() % 2) ? &__lpdu : NULL;
+    return (rand() % 2) ? &__lpdu : NULL;  // NOLINT
 }
 
 
@@ -64,7 +65,7 @@ static FlexrayLpdu* flexray_rx(void)
 #define MIMETYPE                                                               \
     "application/x-automotive-bus; "                                           \
     "interface=stream;type=pdu;schema=fbs;"                                    \
-    "swc_id=1;ecu_id=1"
+    "ecu_id=1;cc_id=0;swc_id=1"
 
 static NCODEC* nc = NULL;
 
@@ -133,6 +134,7 @@ int bridge_step(void)
                 .metadata.lpdu = {
                     .cycle = lpdu->cycle,
                     .null_frame = lpdu->null_frame,
+                    .startup_frame = lpdu->startup_frame,
                     .status = NCodecPduFlexrayLpduStatusTransmitted,
                     /* Optionally provided parameters, if
                     provided, are verified by the NCodec. */

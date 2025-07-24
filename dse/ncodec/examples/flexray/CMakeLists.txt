@@ -33,3 +33,30 @@ install(TARGETS ${BRIDGE_TARGET_NAME}
     RUNTIME DESTINATION
         ${EXAMPLE_PATH}/
 )
+
+
+
+set(WUP_TARGET_NAME "wup")
+add_executable(${WUP_TARGET_NAME}
+    wup.c
+    ncodec.c
+    ${DSE_NCODEC_SOURCE_DIR}/stream/ascii85.c
+    ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec.c
+    ${FLATCC_SOURCE_DIR}/builder.c
+    ${FLATCC_SOURCE_DIR}/emitter.c
+    ${FLATCC_SOURCE_DIR}/refmap.c
+)
+target_include_directories(${WUP_TARGET_NAME}
+    PRIVATE
+        ${DSE_NCODEC_INCLUDE_DIR}
+        ${DSE_CLIB_INCLUDE_DIR}
+        ${FLATCC_INCLUDE_DIR}
+)
+install(TARGETS ${WUP_TARGET_NAME}
+    RUNTIME DESTINATION
+        ${EXAMPLE_PATH}/
+)
