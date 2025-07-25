@@ -9,6 +9,13 @@
 #define UNUSED(x)     ((void)x)
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
+void flexray_anycpu_set_sync(uint8_t cc, uint16_t macrotick, uint8_t cycle)
+{
+    UNUSED(cc);
+    UNUSED(macrotick);
+    UNUSED(cycle);
+}
+
 void flexray_anycpu_set_wup(FrWupReasonType reason)
 {
     UNUSED(reason);
@@ -21,8 +28,8 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
             .slot_id = 10,
             .payload_length = 64,
             .cycle_config = 0x02,
-            .frame_config_table = 0,  /* Self index. */
-            .lpdu_table = 44,  /* Index to LPDU. */
+            .frame_config_table = 0, /* Self index. */
+            .lpdu_table = 44,        /* Index to LPDU. */
             .direction = NCodecPduFlexrayDirectionTx,
             .channel = NCodecPduFlexrayChannelA,
             .transmit_mode = NCodecPduFlexrayTransmitModeSingleShot,
@@ -31,8 +38,8 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
             .slot_id = 12,
             .payload_length = 128,
             .cycle_config = 0x14,
-            .frame_config_table = 1,  /* Self index. */
-            .lpdu_table = 45,  /* Index to LPDU. */
+            .frame_config_table = 1, /* Self index. */
+            .lpdu_table = 45,        /* Index to LPDU. */
             .direction = NCodecPduFlexrayDirectionRx,
             .channel = NCodecPduFlexrayChannelA,
             .transmit_mode = NCodecPduFlexrayTransmitModeNone,
@@ -74,7 +81,6 @@ static NCodecPduFlexrayPocCommand flexray_channel_command[FLEXRAY_CH_A + 1] = {
 };
 NCodecPduFlexrayPocCommand flexray_get_poc_command(uint8_t cc, uint8_t ch)
 {
-    // FIXME this the a queue of commands ?
     assert(cc == FLEXRAY_CC_INDEX);
     assert(ch < ARRAY_SIZE(flexray_channel_command));
     return flexray_channel_command[ch];
@@ -125,4 +131,20 @@ void flexray_anycpu_run(void)
     default:
         break;
     }
+}
+
+void flexray_anycpu_push_lpdu(uint16_t config_index, uint16_t lpdu_index,
+    const uint8_t* data, uint8_t len)
+{
+    UNUSED(config_index);
+    UNUSED(lpdu_index);
+    UNUSED(data);
+    UNUSED(len);
+}
+
+const uint8_t* flexray_anycpu_pull_lpdu(uint16_t* config_index, uint8_t* len)
+{
+    UNUSED(config_index); /* Update with config index of returned LPDU. */
+    UNUSED(len);
+    return NULL; /* Return NULL when no more LPDU need pull/push to NCodec. */
 }

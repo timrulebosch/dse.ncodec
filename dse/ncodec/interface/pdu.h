@@ -241,7 +241,7 @@ typedef struct NCodecPduFlexrayLpdu {
         uint8_t cycle_repetition; /* 0..63 */
         uint8_t base_cycle;       /* 0..63 */
         struct {
-            uint16_t frame_config_table;
+            uint16_t frame_table;
             uint16_t lpdu_table; /* Controller internal only! */
         } index;
         NCodecPduFlexrayDirection    direction;

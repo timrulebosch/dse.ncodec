@@ -13,6 +13,7 @@ set(BRIDGE_TARGET_NAME "bridge")
 add_executable(${BRIDGE_TARGET_NAME}
     bridge.c
     ncodec.c
+    flexray_anycpu.c
     ${DSE_NCODEC_SOURCE_DIR}/stream/ascii85.c
     ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
@@ -92,6 +93,36 @@ target_include_directories(${STARTUP_TARGET_NAME}
         .
 )
 install(TARGETS ${STARTUP_TARGET_NAME}
+    RUNTIME DESTINATION
+        ${EXAMPLE_PATH}/
+)
+
+
+
+set(TXTR_TARGET_NAME "txrx")
+add_executable(${TXTR_TARGET_NAME}
+    txrx.c
+    ncodec.c
+    ecu_stub.c
+    flexray_anycpu.c
+    ${DSE_NCODEC_SOURCE_DIR}/stream/ascii85.c
+    ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec.c
+    ${FLATCC_SOURCE_DIR}/builder.c
+    ${FLATCC_SOURCE_DIR}/emitter.c
+    ${FLATCC_SOURCE_DIR}/refmap.c
+)
+target_include_directories(${TXTR_TARGET_NAME}
+    PRIVATE
+        ${DSE_NCODEC_INCLUDE_DIR}
+        ${DSE_CLIB_INCLUDE_DIR}
+        ${FLATCC_INCLUDE_DIR}
+        .
+)
+install(TARGETS ${TXTR_TARGET_NAME}
     RUNTIME DESTINATION
         ${EXAMPLE_PATH}/
 )

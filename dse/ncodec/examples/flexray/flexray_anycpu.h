@@ -55,11 +55,16 @@ typedef struct FlexrayControllerConfig {
     size_t              frame_config_length;
 } FlexrayControllerConfig;
 
-FlexrayControllerConfig* flexray_anycpu_get_config(void);
-void                     flexray_anycpu_set_wup(FrWupReasonType reason);
-void                     flexray_anycpu_set_poc_state(
-                        uint8_t cc, uint8_t ch, NCodecPduFlexrayPocState poc_state);
+void flexray_anycpu_set_wup(FrWupReasonType reason);
+void flexray_anycpu_set_poc_state(
+    uint8_t cc, uint8_t ch, NCodecPduFlexrayPocState poc_state);
+void flexray_anycpu_run(void);
+void flexray_anycpu_set_sync(uint8_t cc, uint16_t macrotick, uint8_t cycle);
+void flexray_anycpu_push_lpdu(uint16_t config_index, uint16_t lpdu_index,
+    const uint8_t* data, uint8_t len);
+const uint8_t* flexray_anycpu_pull_lpdu(uint16_t* config_index, uint8_t* len);
+
+FlexrayControllerConfig*   flexray_anycpu_get_config(void);
 NCodecPduFlexrayPocCommand flexray_get_poc_command(uint8_t cc, uint8_t ch);
-void                       flexray_anycpu_run(void);
 
 #endif  // DSE_NCODEC_EXAMPLES_FLEXRAY_FLEXRAY_ANYCPU_H_

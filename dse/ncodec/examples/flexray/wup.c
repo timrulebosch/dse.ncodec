@@ -15,19 +15,18 @@ FlexRay Network (Simulated)
         └── FlexRay "Any Cpu" API
 */
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dse/ncodec/codec.h>
 #include <dse/ncodec/interface/pdu.h>
-#include <dse/ncodec/stream/stream.h>
 #include <board_stub.h>
 #include <ecu_stub.h>
 #include <flexray_anycpu.h>
 
 #define UNUSED(x)  ((void)x)
 #define BUFFER_LEN 1024
+
 
 /* FlexRay WUP implementation with NCodec*/
 #define MIMETYPE                                                               \
@@ -36,44 +35,8 @@ FlexRay Network (Simulated)
     "ecu_id=1;cc_id=0;swc_id=1"
 
 static NCODEC* nc = NULL;
-
-static void setup_ncodec(void)
-{
-    NCodecStreamVTable* stream = ncodec_buffer_stream_create(BUFFER_LEN);
-    nc = ncodec_open(MIMETYPE, stream);
-    if (nc == NULL) {
-        printf("Open failed (errno %d)\n", errno);
-        exit(errno);
-    }
-}
-
-static NCodecPduFlexrayStatus get_status(void)
-{
-    NCodecPduFlexrayStatus fr_status = {};
-
-    /* Search for status metadata, last one wins. */
-    ncodec_seek(nc, 0, NCODEC_SEEK_SET);
-    for (;;) {
-        NCodecPdu pdu = {};
-        if (ncodec_read(nc, &pdu) < 0) break;
-        if (pdu.transport_type != NCodecPduTransportTypeFlexray ||
-            pdu.transport.flexray.metadata_type ==
-                NCodecPduFlexrayMetadataTypeStatus) {
-            fr_status = pdu.transport.flexray.metadata.status;
-        }
-    }
-    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
-        NCodecPduFlexrayTransceiverStateNoState) {
-        /* The ncodec_read() did not return a status metadata block. */
-        fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state =
-            NCodecPduFlexrayPocStateUndefined;
-    }
-
-    /* Return status. */
-    printf("POC State: %d\n",
-        fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state);
-    return fr_status;
-}
+extern NCODEC* setup_ncodec(const char* mime_type, size_t buffer_size);
+extern NCodecPduFlexrayStatus get_status(NCODEC* nc);
 
 void do_step(double simulation_time)
 {
@@ -87,7 +50,7 @@ void do_step(double simulation_time)
     }
 
     /* Get the Flexray Bus status from NCodec. */
-    NCodecPduFlexrayStatus fr_status = get_status();
+    NCodecPduFlexrayStatus fr_status = get_status(nc);
     if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
         NCodecPduFlexrayTransceiverStateNoState) {
         /* The ncodec_read() did not return a status metadata block. */
@@ -149,7 +112,7 @@ int main(int argc, char* argv[])
     UNUSED(argc);
     UNUSED(argv);
 
-    setup_ncodec();
+    nc = setup_ncodec(MIMETYPE, BUFFER_LEN);
 
     double simulation_time = 0.0;
     for (int i = 0; i < 10; i++) {
