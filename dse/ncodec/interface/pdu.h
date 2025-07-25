@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 
 /** NCODEC API - PDU/Stream
@@ -186,19 +187,20 @@ typedef enum {
 } NCodecPduFlexrayTransceiverState;
 
 typedef enum {
-    NCodecPduFlexrayStatusPocConfig = 0,
-    NCodecPduFlexrayStatusPocDefaultConfig = 1,
-    NCodecPduFlexrayStatusPocHalt = 2,
-    NCodecPduFlexrayStatusPocNormalActive = 3,
-    NCodecPduFlexrayStatusPocNormalPassive = 4,
-    NCodecPduFlexrayStatusPocReady = 5,
-    NCodecPduFlexrayStatusPocStartup = 6,
-    NCodecPduFlexrayStatusPocWakeup = 7,
-    NCodecPduFlexrayStatusPocUndefined = 8,
+    NCodecPduFlexrayPocStateDefaultConfig = 0, /* WUP detection only. */
+    NCodecPduFlexrayPocStateConfig = 1,
+    NCodecPduFlexrayPocStateReady = 2,
+    NCodecPduFlexrayPocStateWakeup = 3,
+    NCodecPduFlexrayPocStateStartup = 4,
+    NCodecPduFlexrayPocStateNormalActive = 5,  /* Synchronized, active. */
+    NCodecPduFlexrayPocStateNormalPassive = 6, /* Synchronize failed. */
+    NCodecPduFlexrayPocStateHalt = 7,
+    NCodecPduFlexrayPocStateFreeze = 8,
+    NCodecPduFlexrayPocStateUndefined = 9,
 } NCodecPduFlexrayPocState;
 
 typedef enum {
-    NCodecPduFlexrayCommandNotAccepted = 0,
+    NCodecPduFlexrayCommandNone = 0,
     NCodecPduFlexrayCommandConfig = 1,
     NCodecPduFlexrayCommandReady = 2,
     NCodecPduFlexrayCommandWakeup = 3,
@@ -223,6 +225,7 @@ typedef struct NCodecPduFlexrayLpdu {
     bool    null_frame;
     bool    sync_frame;
     bool    startup_frame;
+    bool    payload_preamble_indicator; /* NMVector */
 
     /* LPDU transmission status. */
     NCodecPduFlexrayLpduStatus status;
@@ -344,6 +347,10 @@ typedef struct NCodecPdu {
         NCodecPduStructMetadata     struct_object;
         NCodecPduFlexrayTransport   flexray;
     } transport;
+
+    /* Simulation Metadata. */
+    double simulation_time;
+    double pdu_time;
 } NCodecPdu;
 
 #endif  // DSE_NCODEC_INTERFACE_PDU_H_

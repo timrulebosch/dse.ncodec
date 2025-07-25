@@ -22,91 +22,12 @@ FlexRay Network (Simulated)
 #include <dse/ncodec/codec.h>
 #include <dse/ncodec/interface/pdu.h>
 #include <dse/ncodec/stream/stream.h>
+#include <board_stub.h>
+#include <ecu_stub.h>
+#include <flexray_anycpu.h>
 
-#define UNUSED(x)        ((void)x)
-#define BUFFER_LEN       1024
-
-
-/* Stub Flexray "Any Cpu" API. */
-#define FLEXRAY_CC_INDEX 0
-#define FLEXRAY_CH_A     0
-typedef enum {
-    FrWupNone = 0,
-    FrWupPowerOn = 1,
-    FrWupPin = 2,
-    FrWupBus = 4,
-    FrWupBusAndPin = 6,
-    FrWupReset = 8,
-} FrWupReasonType;
-static void flexray_anycpu_set_wup(FrWupReasonType reason)
-{
-    UNUSED(reason);
-}
-static void flexray_anycpu_set_poc_state(int cc, int ch, int poc_state)
-{
-    UNUSED(cc);
-    UNUSED(ch);
-    UNUSED(poc_state);
-}
-static void flexray_anycpu_run(void)
-{
-}
-
-
-/* Stub ECU API. */
-static void ecu_run(double simulation_time)
-{
-    UNUSED(simulation_time);
-}
-
-
-/* Stub Board Control API. */
-#define PIN_FR_CC0_TRCV     42
-#define PIN_FR_CC0_WUP      43
-#define PIN_FR_WAKEUP_EVENT 44 /* Virtual PIN. */
-typedef enum {
-    PowerOn = 0,
-    PowerOff = 1,
-} PowerState;
-static bool flexray_cc_trcv_power_state = PowerOff;
-static void board_set_power_state(int pin, PowerState state)
-{
-    switch (pin) {
-    case PIN_FR_CC0_TRCV:
-        flexray_cc_trcv_power_state = state;
-        break;
-    default:
-        break;
-    }
-}
-typedef enum {
-    PinLow = 0,
-    PinHigh = 1,
-    PinFloat = 2,
-} PinState;
-static bool     board_cc0_trcv_wup_pin = PinFloat;
-static bool     flexray_wup_event_pin = PinLow;
-static PinState board_get_pin_state(int pin)
-{
-    switch (pin) {
-    case PIN_FR_CC0_WUP:
-        return board_cc0_trcv_wup_pin;
-        break;
-    default:
-        return PinFloat;
-    }
-}
-static void board_set_pin_state(int pin, PinState state)
-{
-    switch (pin) {
-    case PIN_FR_WAKEUP_EVENT:
-        flexray_wup_event_pin = state;
-        break;
-    default:
-        break;
-    }
-}
-
+#define UNUSED(x)  ((void)x)
+#define BUFFER_LEN 1024
 
 /* FlexRay WUP implementation with NCodec*/
 #define MIMETYPE                                                               \
@@ -116,7 +37,7 @@ static void board_set_pin_state(int pin, PinState state)
 
 static NCODEC* nc = NULL;
 
-void setup_ncodec(void)
+static void setup_ncodec(void)
 {
     NCodecStreamVTable* stream = ncodec_buffer_stream_create(BUFFER_LEN);
     nc = ncodec_open(MIMETYPE, stream);
@@ -126,10 +47,38 @@ void setup_ncodec(void)
     }
 }
 
+static NCodecPduFlexrayStatus get_status(void)
+{
+    NCodecPduFlexrayStatus fr_status = {};
+
+    /* Search for status metadata, last one wins. */
+    ncodec_seek(nc, 0, NCODEC_SEEK_SET);
+    for (;;) {
+        NCodecPdu pdu = {};
+        if (ncodec_read(nc, &pdu) < 0) break;
+        if (pdu.transport_type != NCodecPduTransportTypeFlexray ||
+            pdu.transport.flexray.metadata_type ==
+                NCodecPduFlexrayMetadataTypeStatus) {
+            fr_status = pdu.transport.flexray.metadata.status;
+        }
+    }
+    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
+        NCodecPduFlexrayTransceiverStateNoState) {
+        /* The ncodec_read() did not return a status metadata block. */
+        fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state =
+            NCodecPduFlexrayPocStateUndefined;
+    }
+
+    /* Return status. */
+    printf("POC State: %d\n",
+        fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state);
+    return fr_status;
+}
+
 void do_step(double simulation_time)
 {
     /* Power up the FlexRay transceiver of Communication Controller 0. */
-    if (flexray_cc_trcv_power_state != PowerOff) {
+    if (board_get_power_state(PIN_FR_CC0_TRCV) != PowerOff) {
         /* The transceiver will enter its default "power on" state and listen
         for WUP bus signals on its connected channels, or its External
         Wakeup Pin interface. */
@@ -138,17 +87,7 @@ void do_step(double simulation_time)
     }
 
     /* Get the Flexray Bus status from NCodec. */
-    NCodecPduFlexrayStatus fr_status = {};
-    for (;;) {
-        NCodecPdu pdu = {};
-        if (ncodec_read(nc, &pdu) < 0) break;
-        if (pdu.transport_type != NCodecPduTransportTypeFlexray ||
-            pdu.transport.flexray.metadata_type ==
-                NCodecPduFlexrayMetadataTypeStatus) {
-            fr_status = pdu.transport.flexray.metadata.status;
-            break;
-        }
-    }
+    NCodecPduFlexrayStatus fr_status = get_status();
     if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
         NCodecPduFlexrayTransceiverStateNoState) {
         /* The ncodec_read() did not return a status metadata block. */
@@ -181,22 +120,22 @@ do_ecu_run:
     the NCodec object in a simulation step. */
     ncodec_truncate(nc);
 
-    /* Run the ECU software. The WUP event will be detected via the board
-    interface and the FlexRay part (of the ECU software) will react according
-    to the provided WUP reason. */
-    ecu_run(simulation_time);
-
     /* Set the FlexRay POC State. The POC State is maintained by the NCodec and
     adjusted based on commands from the FlexRay Interface _and_ interactions
     with the FlexRay Bus (i.e. Cold Start). */
     if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
         NCodecPduFlexrayTransceiverStateNoState) {
         flexray_anycpu_set_poc_state(
-            FLEXRAY_CC_INDEX, FLEXRAY_CH_A, NCodecPduFlexrayStatusPocUndefined);
+            FLEXRAY_CC_INDEX, FLEXRAY_CH_A, NCodecPduFlexrayPocStateUndefined);
     } else {
         flexray_anycpu_set_poc_state(FLEXRAY_CC_INDEX, FLEXRAY_CH_A,
             fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state);
     }
+
+    /* Run the ECU software. The WUP event will be detected via the board
+    interface and the FlexRay part (of the ECU software) will react according
+    to the provided WUP reason. */
+    ecu_run(simulation_time);
 
     /* Depending on the implementation of an ECU software, the FlexRay Interface
     may need to be explicitly run so that the FlexRay Job List is executed (if
