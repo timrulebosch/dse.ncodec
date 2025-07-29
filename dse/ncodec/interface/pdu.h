@@ -147,10 +147,21 @@ typedef struct NCodecPduStructMetadata {
 
 typedef enum {
     NCodecPduFlexrayBitrate10 = 0,
-    NCodecPduFlexrayBitrate8 = 1,
-    NCodecPduFlexrayBitrate5 = 2,
-    NCodecPduFlexrayBitrate2_5 = 3,
+    NCodecPduFlexrayBitrate5 = 1,
+    NCodecPduFlexrayBitrate2_5 = 2,
 } NCodecPduFlexrayBitrate;
+
+typedef enum {
+    NCodecPduFlexrayMicroTickNs10 = 25,
+    NCodecPduFlexrayMicroTickNs5 = 25,
+    NCodecPduFlexrayMicroTickNs2_5 = 50,
+} NCodecPduFlexrayMicroTickNs;
+
+static const uint8_t flexray_microtick_ns[] = {
+    [NCodecPduFlexrayBitrate10] = NCodecPduFlexrayMicroTickNs10,
+    [NCodecPduFlexrayBitrate5] = NCodecPduFlexrayMicroTickNs5,
+    [NCodecPduFlexrayBitrate2_5] = NCodecPduFlexrayMicroTickNs2_5,
+};
 
 typedef enum {
     NCodecPduFlexrayDirectionRx = 0,
@@ -225,21 +236,17 @@ typedef struct NCodecPduFlexrayLpdu {
     bool    null_frame;
     bool    sync_frame;
     bool    startup_frame;
-    bool    payload_preamble_indicator; /* NMVector */
+    bool    payload_preamble; /* NMVector */
 
     /* LPDU transmission status. */
     NCodecPduFlexrayLpduStatus status;
 
     /* Frame config. */
     struct {
-        union {
-            // FIXME are these always identical values?
-            uint16_t slot_id;
-            uint16_t frame_id; /* 1..2047 */
-        };
-        uint8_t payload_length;   /* 0..254 */
-        uint8_t cycle_repetition; /* 0..63 */
-        uint8_t base_cycle;       /* 0..63 */
+        uint16_t frame_id;         /* 1..2047 */
+        uint8_t  payload_length;   /* 0..254 */
+        uint8_t  cycle_repetition; /* 0..63 */
+        uint8_t  base_cycle;       /* 0..63 */
         struct {
             uint16_t frame_table;
             uint16_t lpdu_table; /* Controller internal only! */
@@ -251,34 +258,31 @@ typedef struct NCodecPduFlexrayLpdu {
 } NCodecPduFlexrayLpdu;
 
 typedef struct NCodecPduFlexrayConfig {
-    NCodecPduFlexrayBitrate bit_rate;
+    /* Communication Cycle Config. */
+    uint16_t macrotick_per_cycle;        /* 10..16000 MT */
+    uint16_t microtick_per_cycle;        /* 640..640000 uT */
+    uint16_t network_idle_start;         /* 7..15997 MT */
+    uint16_t static_slot_length;         /* 4..659 MT */
+    uint16_t static_slot_count;          /* 2..1023 */
+    uint8_t  minislot_length;            /* 2..63 MT */
+    uint16_t minislot_count;             /* 0..7986 */
+    uint32_t static_slot_payload_length; /* 0..254 */
 
-    /* Set according to bitrate, calculated, info only. */
-    uint8_t  sample_period_ns;
-    uint8_t  samples_per_microtick;
-    uint8_t  microtick_ns;
-    uint16_t bit_ms;
-
-    /* User config */
-    uint8_t  microtick_per_macrotick;
-    uint8_t  macrotick_us;
-    uint16_t macrotick_per_cycle;
-    uint16_t cycle_us;
-    uint32_t static_slot_count;
-    uint32_t static_slot_payload_length;
-    bool     single_slot_enabled; /* If true then set false by command
-                                     NCodecPduFlexrayCommandAllSlots. */
-
-    /* Modes or operation. */
+    NCodecPduFlexrayBitrate      bit_rate;
     NCodecPduFlexrayTransmitMode transmit_mode;
     NCodecPduFlexrayChannel      channels_enable;
 
-    /* Additional config, used during startup. */
-    // FIXME review if necessary.
-    uint8_t  key_slot_id;
-    uint8_t  key_slot_id_startup;
-    uint8_t  key_slot_id_sync;
-    uint32_t nm_vector_length;
+    /* Codestart & Sync Config. */
+    bool           coldstart_node;
+    bool           sync_node;
+    uint8_t        coldstart_attempts;    /* 2..31 */
+    uint8_t        wakeup_channel_select; /* 0=A, 1=B */
+    bool           single_slot_enabled;   /* If true then set false by command
+                                             NCodecPduFlexrayCommandAllSlots. */
+    uint16_t       key_slot_id;
+    const uint8_t* key_slot_payload;
+    size_t         key_slot_payload_len;
+    NCodecPduFlexrayLpdu* key_slot_lpdu;
 
     /* Frame Config. */
     struct {

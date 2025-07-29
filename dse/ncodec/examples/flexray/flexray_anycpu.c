@@ -25,7 +25,7 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
 {
     static FlexrayFrameConfig frames[] = {
         {
-            .slot_id = 10,
+            .frame_id = 10,
             .payload_length = 64,
             .cycle_config = 0x02,
             .frame_config_table = 0, /* Self index. */
@@ -35,7 +35,7 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
             .transmit_mode = NCodecPduFlexrayTransmitModeSingleShot,
         },
         {
-            .slot_id = 12,
+            .frame_id = 12,
             .payload_length = 128,
             .cycle_config = 0x14,
             .frame_config_table = 1, /* Self index. */
@@ -47,17 +47,27 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
     };
     static FlexrayControllerConfig config = {
         .cc_index = 0,
+
+        /* Communication Cycle Config. */
+        .macrotick_per_cycle = 100,
+        .microtick_per_cycle = 6400,
+        .network_idle_start = 4000,
+        .static_slot_length = 20,
+        .static_slot_count = 50,
+        .minislot_length = 4,
+        .minislot_count = 500,
+        .static_slot_payload_length = 254,
         .bit_rate = NCodecPduFlexrayBitrate10,
-        .microtick_per_macrotick = 0,
-        .macrotick_per_cycle = 0,
-        .static_slot_count = 20,
-        .static_slot_payload_length = 128,
-        .single_slot_enabled = true,
+        .transmit_mode = NCodecPduFlexrayTransmitModeSingleShot,
         .channels_enable = NCodecPduFlexrayChannelA,
 
-        .key_slot_id = 2,  // FIXME ?? where is CAS value ??
-        .key_slot_id_startup = 2,
-        .key_slot_id_sync = 2,
+        /* Codestart & Sync Config. */
+        .coldstart_node = true,
+        .sync_node = false,
+        .coldstart_attempts = 4,
+        .wakeup_channel_select = 0, /* Channel A. */
+        .single_slot_enabled = true,
+        .key_slot_id = 2,
 
         .frame_config_table = frames,
         .frame_config_length = ARRAY_SIZE(frames),

@@ -91,7 +91,7 @@ void push_config(NCODEC* nc)
         FlexrayFrameConfig* frame = &config->frame_config_table[i];
         frame_table[i] = (NCodecPduFlexrayLpdu){
             .config = {
-                .slot_id = frame->slot_id,
+                .frame_id = frame->frame_id,
                 .payload_length = frame->payload_length,
                 .cycle_repetition = frame->cycle_config & 0x0f,
                 .base_cycle = (frame->cycle_config & 0xf0) >> 4,
@@ -112,19 +112,25 @@ void push_config(NCODEC* nc)
         .transport.flexray = {
             .metadata_type = NCodecPduFlexrayMetadataTypeConfig,
             .metadata.config = {
-                .bit_rate = config->bit_rate,
-                .microtick_per_macrotick = config->microtick_per_macrotick,
                 .macrotick_per_cycle = config->macrotick_per_cycle,
+                .microtick_per_cycle = config->microtick_per_cycle,
+                .network_idle_start = config->network_idle_start,
+                .static_slot_length = config->static_slot_length,
                 .static_slot_count = config->static_slot_count,
+                .minislot_length = config->minislot_length,
+                .minislot_count = config->minislot_count,
                 .static_slot_payload_length = config->static_slot_payload_length,
-                .single_slot_enabled = config->single_slot_enabled,
+
+                .bit_rate = config->bit_rate,
+                .transmit_mode = config->transmit_mode,
                 .channels_enable = config->channels_enable,
 
+                .coldstart_node = config->coldstart_node,
+                .sync_node = config->sync_node,
+                .coldstart_attempts = config->coldstart_attempts,
+                .wakeup_channel_select = config->wakeup_channel_select,
+                .single_slot_enabled = config->single_slot_enabled,
                 .key_slot_id = config->key_slot_id,
-                .key_slot_id_startup = config->key_slot_id_startup,
-                .key_slot_id_sync = config->key_slot_id_sync,
-
-                .nm_vector_length = config->nm_vector_length,
 
                 .frame_config = {
                     .table = frame_table,

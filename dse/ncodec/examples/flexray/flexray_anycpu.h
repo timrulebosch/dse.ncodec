@@ -21,7 +21,7 @@ typedef enum {
 } FrWupReasonType;
 
 typedef struct FlexrayFrameConfig {
-    uint16_t slot_id;
+    uint16_t frame_id;
     uint8_t  payload_length;
     uint8_t  cycle_config;
     uint16_t frame_config_table;
@@ -34,23 +34,35 @@ typedef struct FlexrayFrameConfig {
 } FlexrayFrameConfig;
 
 typedef struct FlexrayControllerConfig {
-    uint8_t                 cc_index;
-    NCodecPduFlexrayBitrate bit_rate;
+    uint8_t cc_index;
 
-    uint8_t  microtick_per_macrotick;
-    uint16_t macrotick_per_cycle;
-    uint32_t static_slot_count;
-    uint32_t static_slot_payload_length;
-    bool     single_slot_enabled;
+    /* Communication Cycle Config. */
+    uint16_t macrotick_per_cycle;        /* 10..16000 MT */
+    uint16_t microtick_per_cycle;        /* 640..640000 uT */
+    uint16_t network_idle_start;         /* 7..15997 MT */
+    uint16_t static_slot_length;         /* 4..659 MT */
+    uint16_t static_slot_count;          /* 2..1023 */
+    uint8_t  minislot_length;            /* 2..63 MT */
+    uint16_t minislot_count;             /* 0..7986 */
+    uint32_t static_slot_payload_length; /* 0..254 */
 
-    NCodecPduFlexrayChannel channels_enable;
+    NCodecPduFlexrayBitrate      bit_rate;
+    NCodecPduFlexrayTransmitMode transmit_mode;
+    NCodecPduFlexrayChannel      channels_enable;
 
-    uint32_t key_slot_id;
-    uint8_t  key_slot_id_startup;
-    uint8_t  key_slot_id_sync;
+    /* Codestart & Sync Config. */
+    bool           coldstart_node;
+    bool           sync_node;
+    uint8_t        coldstart_attempts;    /* 2..31 */
+    uint8_t        wakeup_channel_select; /* 0=A, 1=B */
+    bool           single_slot_enabled;   /* If true then set false by command
+                                             NCodecPduFlexrayCommandAllSlots. */
+    uint16_t       key_slot_id;
+    const uint8_t* key_slot_payload;
+    size_t         key_slot_payload_len;
+    NCodecPduFlexrayLpdu* key_slot_lpdu;
 
-    uint32_t nm_vector_length;
-
+    /* Config Table. */
     FlexrayFrameConfig* frame_config_table;
     size_t              frame_config_length;
 } FlexrayControllerConfig;
