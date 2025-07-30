@@ -13,10 +13,10 @@
 /** NCODEC API - PDU/Stream
     =======================
 
-    Types relating to the implementaiton of the Stream/PDU interface of
+    Types relating to the implementation of the Stream/PDU interface of
     the NCodec API.
 
-    The root type is `NCodecPdu` which may be substitued for the `NCodecMessage`
+    The root type is `NCodecPdu` which may be substituted for the `NCodecMessage`
     type when calling NCodec API methods (e.g. `ncodec_write()`).
 */
 
