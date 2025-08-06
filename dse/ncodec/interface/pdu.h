@@ -145,27 +145,49 @@ typedef struct NCodecPduStructMetadata {
     -------------------------------------
 */
 
+typedef struct NCodecPduFlexrayNodeIdentifier {
+    union {
+        uint64_t node_id;
+        struct {
+            uint16_t ecu_id;
+            uint16_t cc_id;
+            uint32_t swc_id;
+        } node;
+    };
+} NCodecPduFlexrayNodeIdentifier;
+
 typedef enum {
-    NCodecPduFlexrayBitrate10 = 0,
-    NCodecPduFlexrayBitrate5 = 1,
-    NCodecPduFlexrayBitrate2_5 = 2,
+    NCodecPduFlexrayBitrateNone = 0, /* No Config. */
+    NCodecPduFlexrayBitrate10 = 1,
+    NCodecPduFlexrayBitrate5 = 2,
+    NCodecPduFlexrayBitrate2_5 = 3,
 } NCodecPduFlexrayBitrate;
 
 typedef enum {
+    NCodecPduFlexrayMicroTickNone = 0,
     NCodecPduFlexrayMicroTickNs10 = 25,
     NCodecPduFlexrayMicroTickNs5 = 25,
     NCodecPduFlexrayMicroTickNs2_5 = 50,
 } NCodecPduFlexrayMicroTickNs;
 
 static const uint8_t flexray_microtick_ns[] = {
+    [NCodecPduFlexrayBitrateNone] = NCodecPduFlexrayMicroTickNone,
     [NCodecPduFlexrayBitrate10] = NCodecPduFlexrayMicroTickNs10,
     [NCodecPduFlexrayBitrate5] = NCodecPduFlexrayMicroTickNs5,
     [NCodecPduFlexrayBitrate2_5] = NCodecPduFlexrayMicroTickNs2_5,
 };
 
+static const uint16_t flexray_bittime_ns[] = {
+    [NCodecPduFlexrayBitrateNone] = 1, /* Not used, safe value. */
+    [NCodecPduFlexrayBitrate10] = 100,
+    [NCodecPduFlexrayBitrate5] = 200,
+    [NCodecPduFlexrayBitrate2_5] = 400,
+};
+
 typedef enum {
-    NCodecPduFlexrayDirectionRx = 0,
-    NCodecPduFlexrayDirectionTx = 1,
+    NCodecPduFlexrayDirectionNone = 0,
+    NCodecPduFlexrayDirectionRx = 1,
+    NCodecPduFlexrayDirectionTx = 2,
 } NCodecPduFlexrayDirection;
 
 typedef enum {
@@ -258,9 +280,11 @@ typedef struct NCodecPduFlexrayLpdu {
 } NCodecPduFlexrayLpdu;
 
 typedef struct NCodecPduFlexrayConfig {
+    NCodecPduFlexrayNodeIdentifier node_ident;
+
     /* Communication Cycle Config. */
     uint16_t macrotick_per_cycle;        /* 10..16000 MT */
-    uint16_t microtick_per_cycle;        /* 640..640000 uT */
+    uint32_t microtick_per_cycle;        /* 640..640000 uT */
     uint16_t network_idle_start;         /* 7..15997 MT */
     uint16_t static_slot_length;         /* 4..659 MT */
     uint16_t static_slot_count;          /* 2..1023 */
@@ -269,7 +293,6 @@ typedef struct NCodecPduFlexrayConfig {
     uint32_t static_slot_payload_length; /* 0..254 */
 
     NCodecPduFlexrayBitrate      bit_rate;
-    NCodecPduFlexrayTransmitMode transmit_mode;
     NCodecPduFlexrayChannel      channels_enable;
 
     /* Codestart & Sync Config. */
@@ -283,6 +306,7 @@ typedef struct NCodecPduFlexrayConfig {
     const uint8_t* key_slot_payload;
     size_t         key_slot_payload_len;
     NCodecPduFlexrayLpdu* key_slot_lpdu;
+    // TODO wakeup pattern(33)? symbol TX_Idle(180)/TX_low(60)/Rx_Idle(40)/Rx_Low(40)
 
     /* Frame Config. */
     struct {
@@ -338,8 +362,9 @@ typedef struct NCodecPdu {
 
     /* Sender identifying properties (optional), default values are taken
        from the stream MIME Type parameters. */
+    uint16_t ecu_id;
+    uint16_t cc_id;
     uint32_t swc_id;
-    uint32_t ecu_id;
 
     /* Transport Metadata. */
     NCodecPduTransportType transport_type;

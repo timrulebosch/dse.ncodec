@@ -122,7 +122,6 @@ void push_config(NCODEC* nc)
                 .static_slot_payload_length = config->static_slot_payload_length,
 
                 .bit_rate = config->bit_rate,
-                .transmit_mode = config->transmit_mode,
                 .channels_enable = config->channels_enable,
 
                 .coldstart_node = config->coldstart_node,

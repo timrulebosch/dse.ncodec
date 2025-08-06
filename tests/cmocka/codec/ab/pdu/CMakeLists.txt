@@ -13,10 +13,12 @@ add_executable(test_codec_ab_pdu
     test_pdu_can.c
     test_pdu_ip.c
     test_pdu_struct.c
+    test_pdu_flexray_engine.c
     ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/flexray.c
     ${DSE_NCODEC_SOURCE_DIR}/codec.c
     ${FLATCC_SOURCE_DIR}/builder.c
     ${FLATCC_SOURCE_DIR}/emitter.c

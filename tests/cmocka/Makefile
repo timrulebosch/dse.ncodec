@@ -27,8 +27,8 @@ build:
 	@find build/_out/ -type f -name '*' -exec ls -sh --color=auto {} \;
 
 run:
-	cd build/_out; $(GDB_CMD) bin/test_codec_ab
-	cd build/_out; $(GDB_CMD) bin/test_codec_ab_frame
+#	cd build/_out; $(GDB_CMD) bin/test_codec_ab
+#	cd build/_out; $(GDB_CMD) bin/test_codec_ab_frame
 	cd build/_out; $(GDB_CMD) bin/test_codec_ab_pdu
 
 clean:
