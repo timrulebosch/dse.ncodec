@@ -16,8 +16,8 @@
     Types relating to the implementation of the Stream/PDU interface of
     the NCodec API.
 
-    The root type is `NCodecPdu` which may be substituted for the `NCodecMessage`
-    type when calling NCodec API methods (e.g. `ncodec_write()`).
+    The root type is `NCodecPdu` which may be substituted for the
+   `NCodecMessage` type when calling NCodec API methods (e.g. `ncodec_write()`).
 */
 
 
@@ -245,42 +245,57 @@ typedef enum {
 } NCodecPduFlexrayPocCommand;
 
 typedef enum {
-    NCodecPduFlexrayLpduStatusTransmitted = 0,
-    NCodecPduFlexrayLpduStatusTransmittedConflict = 1,
+    NCodecPduFlexrayLpduStatusNone = 0,
+    NCodecPduFlexrayLpduStatusTransmitted = 1,
     NCodecPduFlexrayLpduStatusNotTransmitted = 2,
     NCodecPduFlexrayLpduStatusReceived = 3,
     NCodecPduFlexrayLpduStatusNotReceived = 4,
-    NCodecPduFlexrayLpduStatusReceivedMoreDataAvailable = 5,
 } NCodecPduFlexrayLpduStatus;
 
+typedef enum {
+    NCodecPduFlexrayLpduConfigSet = 0,
+    NCodecPduFlexrayLpduConfigFrameTableSet = 1,
+    NCodecPduFlexrayLpduConfigFrameTableMerge = 1,
+    NCodecPduFlexrayLpduConfigFrameTableDelete = 1,
+} NCodecPduFlexrayConfigOp;
+
 typedef struct NCodecPduFlexrayLpdu {
+    /* Header (id/payload in NCodecPdu). */
     uint8_t cycle; /* 0..63 */
-    bool    null_frame;
-    bool    sync_frame;
-    bool    startup_frame;
-    bool    payload_preamble; /* NMVector */
 
-    /* LPDU transmission status. */
+    /* Header Indicators. */
+    bool null_frame;
+    bool sync_frame;
+    bool startup_frame;
+    bool payload_preamble;
+
+    /* Status update (to/from NCodecPduFlexrayLpduConfig). */
     NCodecPduFlexrayLpduStatus status;
-
-    /* Frame config. */
-    struct {
-        uint16_t frame_id;         /* 1..2047 */
-        uint8_t  payload_length;   /* 0..254 */
-        uint8_t  cycle_repetition; /* 0..63 */
-        uint8_t  base_cycle;       /* 0..63 */
-        struct {
-            uint16_t frame_table;
-            uint16_t lpdu_table; /* Controller internal only! */
-        } index;
-        NCodecPduFlexrayDirection    direction;
-        NCodecPduFlexrayChannel      channel;
-        NCodecPduFlexrayTransmitMode transmit_mode;
-    } config;
 } NCodecPduFlexrayLpdu;
+
+typedef struct NCodecPduFlexrayLpduConfig {
+    /* Communication Cycle parameters. */
+    uint16_t frame_id;         /* 1..2047 */
+    uint8_t  payload_length;   /* 0..254 */
+    uint8_t  cycle_repetition; /* 0..63 */
+    uint8_t  base_cycle;       /* 0..63 */
+
+    /* Indexes. */
+    struct {
+        uint16_t frame_table;
+        uint16_t lpdu_table; /* Controller internal only! */
+    } index;
+
+    /* Operational Fields. */
+    NCodecPduFlexrayDirection    direction;
+    NCodecPduFlexrayChannel      channel;
+    NCodecPduFlexrayTransmitMode transmit_mode;
+    NCodecPduFlexrayLpduStatus   status;
+} NCodecPduFlexrayLpduConfig;
 
 typedef struct NCodecPduFlexrayConfig {
     NCodecPduFlexrayNodeIdentifier node_ident;
+    NCodecPduFlexrayConfigOp       operation;
 
     /* Communication Cycle Config. */
     uint16_t macrotick_per_cycle;        /* 10..16000 MT */
@@ -292,8 +307,8 @@ typedef struct NCodecPduFlexrayConfig {
     uint16_t minislot_count;             /* 0..7986 */
     uint32_t static_slot_payload_length; /* 0..254 */
 
-    NCodecPduFlexrayBitrate      bit_rate;
-    NCodecPduFlexrayChannel      channels_enable;
+    NCodecPduFlexrayBitrate bit_rate;
+    NCodecPduFlexrayChannel channels_enable;
 
     /* Codestart & Sync Config. */
     bool           coldstart_node;
@@ -306,12 +321,13 @@ typedef struct NCodecPduFlexrayConfig {
     const uint8_t* key_slot_payload;
     size_t         key_slot_payload_len;
     NCodecPduFlexrayLpdu* key_slot_lpdu;
-    // TODO wakeup pattern(33)? symbol TX_Idle(180)/TX_low(60)/Rx_Idle(40)/Rx_Low(40)
+    // TODO wakeup pattern(33)? symbol
+    // TX_Idle(180)/TX_low(60)/Rx_Idle(40)/Rx_Low(40)
 
     /* Frame Config. */
     struct {
-        NCodecPduFlexrayLpdu* table;
-        size_t                count;
+        size_t                      count;
+        NCodecPduFlexrayLpduConfig* table;
     } frame_config;
 } NCodecPduFlexrayConfig;
 

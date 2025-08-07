@@ -69,6 +69,13 @@ static FlexrayLpdu* flexray_rx(void)
 
 static NCODEC* nc = NULL;
 
+NCodecPduFlexrayLpduConfig lookup(uint32_t id)
+{
+    UNUSED(id);
+    NCodecPduFlexrayLpduConfig config = { 0 };
+    return config;
+}
+
 void bridge_create(void)
 {
     NCodecStreamVTable* stream = ncodec_buffer_stream_create(BUFFER_LEN);
@@ -104,14 +111,14 @@ int bridge_step(void)
             NCodecPduFlexrayLpduStatusNotTransmitted) {
             continue;
         }
+        NCodecPduFlexrayLpduConfig lpdu_config = lookup(pdu.id);
         flexray_tx(&(struct FlexrayLpdu){
             .frame_id = pdu.id,
             .payload = pdu.payload,  // Called API does immediate memcpy()!
             .payload_len = pdu.payload_len,
-            .channel = pdu.transport.flexray.metadata.lpdu.config.channel,
-            .base_cycle = pdu.transport.flexray.metadata.lpdu.config.base_cycle,
-            .cycle_repetition =
-                pdu.transport.flexray.metadata.lpdu.config.cycle_repetition,
+            .channel = lpdu_config.channel,
+            .base_cycle = lpdu_config.base_cycle,
+            .cycle_repetition = lpdu_config.cycle_repetition,
         });
     }
     ncodec_truncate(nc);
@@ -136,9 +143,6 @@ int bridge_step(void)
                     .null_frame = lpdu->null_frame,
                     .startup_frame = lpdu->startup_frame,
                     .status = NCodecPduFlexrayLpduStatusTransmitted,
-                    /* Optionally provided parameters, if
-                    provided, are verified by the NCodec. */
-                    .config.channel = lpdu->channel,
                 },
             },
         });

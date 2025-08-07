@@ -55,7 +55,7 @@ static NCodecPduFlexrayConfig cc_config = {
     .key_slot_id = 0u,
 };
 
-static NCodecPduFlexrayLpdu frame_config__empty[0] = {};
+static NCodecPduFlexrayLpduConfig frame_config__empty[0] = {};
 
 
 static int test_setup(void** state)
@@ -86,9 +86,9 @@ static int test_teardown(void** state)
 
 void test_flexray__communication_parameters(void** state)
 {
-    Mock*                  mock = *state;
-    NCodecPduFlexrayConfig config = cc_config;
-    NCodecPduFlexrayLpdu*  frame_table = frame_config__empty;
+    Mock*                       mock = *state;
+    NCodecPduFlexrayConfig      config = cc_config;
+    NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
 
@@ -151,9 +151,9 @@ typedef struct {
 
 void test_flexray__engine_cycle__empty_frame_config(void** state)
 {
-    Mock*                  mock = *state;
-    NCodecPduFlexrayConfig config = cc_config;
-    NCodecPduFlexrayLpdu*  frame_table = frame_config__empty;
+    Mock*                       mock = *state;
+    NCodecPduFlexrayConfig      config = cc_config;
+    NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
 
@@ -196,17 +196,17 @@ void test_flexray__engine_cycle__empty_frame_config(void** state)
 
 void test_flexray__engine_cycle__with_frame_config(void** state)
 {
-    Mock*                  mock = *state;
-    NCodecPduFlexrayConfig config = cc_config;
-    NCodecPduFlexrayLpdu   frame_table[] = {
-        { .config = { .frame_id = 24,
-                .payload_length = 64,
-                .base_cycle = 0,
-                .cycle_repetition = 1 } },
-        { .config = { .frame_id = 155,
-                .payload_length = 64,
-                .direction = NCodecPduFlexrayDirectionTx },
-              .status = NCodecPduFlexrayLpduStatusNotTransmitted },
+    Mock*                      mock = *state;
+    NCodecPduFlexrayConfig     config = cc_config;
+    NCodecPduFlexrayLpduConfig frame_table[] = {
+        { .frame_id = 24,
+            .payload_length = 64,
+            .base_cycle = 0,
+            .cycle_repetition = 1 },
+        { .frame_id = 155,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionTx,
+            .status = NCodecPduFlexrayLpduStatusNotTransmitted },
     };
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_table);
@@ -249,9 +249,9 @@ void test_flexray__engine_cycle__with_frame_config(void** state)
 
 void test_flexray__engine_cycle__wrap(void** state)
 {
-    Mock*                  mock = *state;
-    NCodecPduFlexrayConfig config = cc_config;
-    NCodecPduFlexrayLpdu*  frame_table = frame_config__empty;
+    Mock*                       mock = *state;
+    NCodecPduFlexrayConfig      config = cc_config;
+    NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
     FlexRayEngine* engine = &mock->engine;
@@ -296,9 +296,9 @@ void test_flexray__engine_cycle__wrap(void** state)
 
 void test_flexray__engine_cycle__shift(void** state)
 {
-    Mock*                  mock = *state;
-    NCodecPduFlexrayConfig config = cc_config;
-    NCodecPduFlexrayLpdu*  frame_table = frame_config__empty;
+    Mock*                       mock = *state;
+    NCodecPduFlexrayConfig      config = cc_config;
+    NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
     FlexRayEngine* engine = &mock->engine;
@@ -393,13 +393,13 @@ void test_flexray__engine_txrx__frames(void** state)
     Mock* mock = *state;
 
     /* */
-    NCodecPduFlexrayConfig config_0 = cc_config; /* TX */
-    NCodecPduFlexrayConfig config_1 = cc_config; /* RX */
-    NCodecPduFlexrayLpdu   frame_table_0[] = {
-        { .config = { .payload_length = 64 } }, /* TX */
+    NCodecPduFlexrayConfig     config_0 = cc_config; /* TX */
+    NCodecPduFlexrayConfig     config_1 = cc_config; /* RX */
+    NCodecPduFlexrayLpduConfig frame_table_0[] = {
+        { .payload_length = 64 }, /* TX */
     };
-    NCodecPduFlexrayLpdu frame_table_1[] = {
-        { .config = { .payload_length = 64 } }, /* RX */
+    NCodecPduFlexrayLpduConfig frame_table_1[] = {
+        { .payload_length = 64 }, /* RX */
     };
     config_0.frame_config.table = frame_table_0;
     config_0.frame_config.count = ARRAY_SIZE(frame_table_0);
@@ -777,18 +777,18 @@ void test_flexray__engine_txrx__frames(void** state)
 
         /* TX Frame. */
         // frame_table[0].node_ident.node_id =  checks[step].lpdu_tx.node_id;
-        frame_table_0[0].config.direction = NCodecPduFlexrayDirectionTx;
-        frame_table_0[0].config.frame_id = checks[step].lpdu_tx.frame_id;
-        frame_table_0[0].config.base_cycle = checks[step].lpdu_tx.base;
-        frame_table_0[0].config.cycle_repetition = checks[step].lpdu_tx.repeat;
-        frame_table_0[0].config.transmit_mode = checks[step].lpdu_tx.tx_mode;
+        frame_table_0[0].direction = NCodecPduFlexrayDirectionTx;
+        frame_table_0[0].frame_id = checks[step].lpdu_tx.frame_id;
+        frame_table_0[0].base_cycle = checks[step].lpdu_tx.base;
+        frame_table_0[0].cycle_repetition = checks[step].lpdu_tx.repeat;
+        frame_table_0[0].transmit_mode = checks[step].lpdu_tx.tx_mode;
         frame_table_0[0].status = checks[step].lpdu_tx.status;
         /* RX Frame. */
         // frame_table[0].node_ident.node_id =  checks[step].lpdu_rx.node_id;
-        frame_table_1[0].config.direction = NCodecPduFlexrayDirectionRx;
-        frame_table_1[0].config.frame_id = checks[step].lpdu_rx.frame_id;
-        frame_table_1[0].config.base_cycle = checks[step].lpdu_rx.base;
-        frame_table_1[0].config.cycle_repetition = checks[step].lpdu_rx.repeat;
+        frame_table_1[0].direction = NCodecPduFlexrayDirectionRx;
+        frame_table_1[0].frame_id = checks[step].lpdu_rx.frame_id;
+        frame_table_1[0].base_cycle = checks[step].lpdu_rx.base;
+        frame_table_1[0].cycle_repetition = checks[step].lpdu_rx.repeat;
         frame_table_1[0].status = checks[step].lpdu_rx.status;
         assert_int_equal(0, process_config(&config_0, engine));
         assert_int_equal(0, process_config(&config_1, engine));
@@ -799,7 +799,7 @@ void test_flexray__engine_txrx__frames(void** state)
 #define PAYLOAD "hello world"
         assert_int_equal(
             0, set_payload(engine, config_0.node_ident.node_id,
-                   frame_table_0[0].config.frame_id, frame_table_0[0].status,
+                   frame_table_0[0].frame_id, frame_table_0[0].status,
                    (uint8_t*)PAYLOAD, strlen(PAYLOAD)));
 
         /* Progress one sim step. */
@@ -815,13 +815,13 @@ void test_flexray__engine_txrx__frames(void** state)
             FlexRayLpdu* tx_lpdu = NULL;
             vector_at(&engine->txrx_list, 0, &tx_lpdu);
             assert_int_equal(
-                checks[step].expect.tx_status, tx_lpdu->lpdu.status);
+                checks[step].expect.tx_status, tx_lpdu->lpdu_config.status);
         }
         if (checks[step].expect.rx) {
             FlexRayLpdu* rx_lpdu = NULL;
             vector_at(&engine->txrx_list, txrx_len - 1, &rx_lpdu);
             assert_int_equal(
-                checks[step].expect.rx_status, rx_lpdu->lpdu.status);
+                checks[step].expect.rx_status, rx_lpdu->lpdu_config.status);
             assert_memory_equal(PAYLOAD, rx_lpdu->payload, strlen(PAYLOAD));
         }
         release_config(engine);

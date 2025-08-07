@@ -41,6 +41,13 @@ extern void flexray_anycpu_push_lpdu(uint16_t config_index, uint16_t lpdu_index,
 extern const uint8_t* flexray_anycpu_pull_lpdu(
     uint16_t* config_index, uint8_t* len);
 
+NCodecPduFlexrayLpduConfig lookup(uint32_t id)
+{
+    UNUSED(id);
+    NCodecPduFlexrayLpduConfig config = { 0 };
+    return config;
+}
+
 void do_step(double simulation_time)
 {
     /* Get the Flexray Bus status from NCodec. */
@@ -59,9 +66,9 @@ void do_step(double simulation_time)
         if (pdu.transport_type != NCodecPduTransportTypeFlexray ||
             pdu.transport.flexray.metadata_type ==
                 NCodecPduFlexrayMetadataTypeLpdu) {
-            NCodecPduFlexrayLpdu lpdu = pdu.transport.flexray.metadata.lpdu;
-            flexray_anycpu_push_lpdu(lpdu.config.index.frame_table,
-                lpdu.config.index.lpdu_table, pdu.payload,
+            NCodecPduFlexrayLpduConfig lpdu_config = lookup(pdu.id);
+            flexray_anycpu_push_lpdu(lpdu_config.index.frame_table,
+                lpdu_config.index.lpdu_table, pdu.payload,
                 (uint8_t)pdu.payload_len);
         }
     }
@@ -87,13 +94,13 @@ do_ecu_run:
     while ((buffer = flexray_anycpu_pull_lpdu(&config_index, &buffer_len)) !=
            NULL) {
         ncodec_write(nc, &(struct NCodecPdu){
+            .id = 0x42,
             .payload = buffer,
             .payload_len = buffer_len,
             .transport_type = NCodecPduTransportTypeFlexray,
             .transport.flexray = {
                 .metadata_type = NCodecPduFlexrayMetadataTypeLpdu,
                 .metadata.lpdu = {
-                    .config.index.frame_table = config_index,
                     .status = NCodecPduFlexrayLpduStatusNotTransmitted,
                 },
             },

@@ -54,7 +54,7 @@ typedef struct FlexRayEngine {
 typedef struct FlexRayLpdu {
     /* Status and config. */
     NCodecPduFlexrayNodeIdentifier node_ident;
-    NCodecPduFlexrayLpdu           lpdu;
+    NCodecPduFlexrayLpduConfig     lpdu_config;
 
     /* Payload associated with this LPDU. */
     uint8_t* payload;

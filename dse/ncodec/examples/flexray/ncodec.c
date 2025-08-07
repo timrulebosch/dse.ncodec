@@ -85,24 +85,22 @@ void push_config(NCODEC* nc)
     FlexrayControllerConfig* config = flexray_anycpu_get_config();
     if (config == NULL) return;
 
-    NCodecPduFlexrayLpdu* frame_table =
-        calloc(config->frame_config_length, sizeof(NCodecPduFlexrayLpdu));
+    NCodecPduFlexrayLpduConfig* frame_table =
+        calloc(config->frame_config_length, sizeof(NCodecPduFlexrayLpduConfig));
     for (size_t i = 0; i < config->frame_config_length; i++) {
         FlexrayFrameConfig* frame = &config->frame_config_table[i];
-        frame_table[i] = (NCodecPduFlexrayLpdu){
-            .config = {
-                .frame_id = frame->frame_id,
-                .payload_length = frame->payload_length,
-                .cycle_repetition = frame->cycle_config & 0x0f,
-                .base_cycle = (frame->cycle_config & 0xf0) >> 4,
-                .index = {
-                    .frame_table = i,
-                    .lpdu_table = frame->lpdu_table,
-                },
-                .direction = frame->direction,
-                .channel = frame->channel,
-                .transmit_mode = frame->transmit_mode,
+        frame_table[i] = (NCodecPduFlexrayLpduConfig){
+            .frame_id = frame->frame_id,
+            .payload_length = frame->payload_length,
+            .cycle_repetition = frame->cycle_config & 0x0f,
+            .base_cycle = (frame->cycle_config & 0xf0) >> 4,
+            .index = {
+                .frame_table = i,
+                .lpdu_table = frame->lpdu_table,
             },
+            .direction = frame->direction,
+            .channel = frame->channel,
+            .transmit_mode = frame->transmit_mode,
         };
     }
 
