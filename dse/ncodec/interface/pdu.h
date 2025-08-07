@@ -242,6 +242,7 @@ typedef enum {
     NCodecPduFlexrayCommandHalt = 6,
     NCodecPduFlexrayCommandFreeze = 7,
     NCodecPduFlexrayCommandAllowColdstart = 8,
+    NCodecPduFlexrayCommandNop = 9,
 } NCodecPduFlexrayPocCommand;
 
 typedef enum {

@@ -12,6 +12,11 @@
 #include <dse/ncodec/interface/pdu.h>
 
 
+typedef struct FlexRayState {
+    NCodecPduFlexrayPocState poc_state;
+} FlexRayState;
+
+
 typedef struct FlexRayEngine {
     NCodecPduFlexrayNodeIdentifier node_ident;
 
@@ -51,6 +56,7 @@ typedef struct FlexRayEngine {
     Vector txrx_list;
 } FlexRayEngine;
 
+
 typedef struct FlexRayLpdu {
     /* Status and config. */
     NCodecPduFlexrayNodeIdentifier node_ident;
@@ -68,5 +74,6 @@ void release_config(FlexRayEngine* engine);
 int  shift_cycle(FlexRayEngine* engine, uint32_t mt, uint8_t cycle, bool force);
 int  set_payload(FlexRayEngine* engine, uint64_t node_id, uint32_t slot_id,
      NCodecPduFlexrayLpduStatus status, uint8_t* payload, size_t payload_len);
+int process_poc_command(FlexRayState* state, NCodecPduFlexrayPocCommand command);
 
 #endif  // DSE_NCODEC_CODEC_AB_FLEXRAY_FLEXRAY_H_

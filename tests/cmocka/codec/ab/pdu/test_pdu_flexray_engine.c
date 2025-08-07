@@ -828,7 +828,7 @@ void test_flexray__engine_txrx__frames(void** state)
     }
 }
 
-int run_pdu_flexray_tests(void)
+int run_pdu_flexray_engine_tests(void)
 {
     void* s = test_setup;
     void* t = test_teardown;
@@ -845,9 +845,7 @@ int run_pdu_flexray_tests(void)
             test_flexray__engine_cycle__shift, s, t),
         cmocka_unit_test_setup_teardown(
             test_flexray__engine_txrx__frames, s, t),
-        // cmocka_unit_test_setup_teardown(test_flexray__engine_txrx__full_cc,
-        // s, t),
     };
 
-    return cmocka_run_group_tests_name("PDU FLEXRAY", tests, NULL, NULL);
+    return cmocka_run_group_tests_name("PDU FLEXRAY ENGINE", tests, NULL, NULL);
 }
