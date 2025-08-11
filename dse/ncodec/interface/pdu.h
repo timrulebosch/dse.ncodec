@@ -210,7 +210,7 @@ typedef enum {
 } NCodecPduFlexrayChannelStatus;
 
 typedef enum {
-    NCodecPduFlexrayTransceiverStateNoState = 0, /* Failed read. */
+    NCodecPduFlexrayTransceiverStateNoPower = 0,
     NCodecPduFlexrayTransceiverStateNoConnection = 1,
     NCodecPduFlexrayTransceiverStateNoSignal = 2,
     NCodecPduFlexrayTransceiverStateCAS = 3,

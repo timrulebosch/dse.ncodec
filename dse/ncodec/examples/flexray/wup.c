@@ -52,7 +52,7 @@ void do_step(double simulation_time)
     /* Get the Flexray Bus status from NCodec. */
     NCodecPduFlexrayStatus fr_status = get_status(nc);
     if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
-        NCodecPduFlexrayTransceiverStateNoState) {
+        NCodecPduFlexrayTransceiverStateNoSignal) {
         /* The ncodec_read() did not return a status metadata block. */
         goto do_ecu_run;
     }
@@ -87,7 +87,7 @@ do_ecu_run:
     adjusted based on commands from the FlexRay Interface _and_ interactions
     with the FlexRay Bus (i.e. Cold Start). */
     if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
-        NCodecPduFlexrayTransceiverStateNoState) {
+        NCodecPduFlexrayTransceiverStateNoSignal) {
         flexray_anycpu_set_poc_state(
             FLEXRAY_CC_INDEX, FLEXRAY_CH_A, NCodecPduFlexrayPocStateUndefined);
     } else {

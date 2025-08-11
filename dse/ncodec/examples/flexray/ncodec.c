@@ -66,7 +66,7 @@ NCodecPduFlexrayStatus get_status(NCODEC* nc)
         }
     }
     if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
-        NCodecPduFlexrayTransceiverStateNoState) {
+        NCodecPduFlexrayTransceiverStateNoSignal) {
         /* The ncodec_read() did not return a status metadata block. */
         fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state =
             NCodecPduFlexrayPocStateUndefined;
