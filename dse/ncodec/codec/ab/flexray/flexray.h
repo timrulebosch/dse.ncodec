@@ -88,12 +88,11 @@ int  shift_cycle(FlexRayEngine* engine, uint32_t mt, uint8_t cycle, bool force);
 int  set_payload(FlexRayEngine* engine, uint64_t node_id, uint32_t slot_id,
      NCodecPduFlexrayLpduStatus status, uint8_t* payload, size_t payload_len);
 
-// FIXME: is this an external/static ?
 int process_poc_command(
     FlexRayNodeState* state, NCodecPduFlexrayPocCommand command);
 
-void register_node_state(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid);
+void register_node_state(FlexRayState* state,
+    NCodecPduFlexrayNodeIdentifier nid, bool pwr_on, bool pwr_off);
 void register_vcs_node_state(
     FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid);
 void release_state(FlexRayState* state);
@@ -102,7 +101,7 @@ void push_node_state(FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid,
 void calculate_bus_condition(FlexRayState* state);
 FlexRayNodeState get_node_state(
     FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid);
-FlexRayNodeState set_node_power(
+void set_node_power(
     FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on);
 
 #endif  // DSE_NCODEC_CODEC_AB_FLEXRAY_FLEXRAY_H_

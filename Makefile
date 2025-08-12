@@ -10,7 +10,7 @@ GCC_BUILDER_IMAGE ?= ghcr.io/boschglobal/dse-gcc-builder:main
 ###############
 ## External Projects.
 ABS_REPO ?= https://github.com/boschglobal/automotive-bus-schema
-ABS_VERSION ?= 1.0.7
+ABS_VERSION ?= 1.0.8
 export ABS_URL ?= $(ABS_REPO)/releases/download/v$(ABS_VERSION)/automotive-bus-schema.tar.gz
 
 DSE_CLIB_REPO ?= https://github.com/boschglobal/dse.clib
@@ -46,6 +46,7 @@ PACKAGE_PATH = $(NAMESPACE)/dist
 
 ifneq ($(CI), true)
 	DOCKER_BUILDER_CMD := docker run -it --rm \
+		--user $$(id -u):$$(id -g) \
 		--env CMAKE_TOOLCHAIN_FILE=/tmp/repo/extra/cmake/$(PACKAGE_ARCH).cmake \
 		--env EXTERNAL_BUILD_DIR=$(EXTERNAL_BUILD_DIR) \
 		--env PACKAGE_ARCH=$(PACKAGE_ARCH) \

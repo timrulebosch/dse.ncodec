@@ -51,7 +51,7 @@ void do_step(double simulation_time)
 
     /* Get the Flexray Bus status from NCodec. */
     NCodecPduFlexrayStatus fr_status = get_status(nc);
-    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
+    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].tcvr_state ==
         NCodecPduFlexrayTransceiverStateNoSignal) {
         /* The ncodec_read() did not return a status metadata block. */
         goto do_ecu_run;
@@ -62,7 +62,7 @@ void do_step(double simulation_time)
     if (board_get_pin_state(PIN_FR_CC0_WUP) == PinHigh) {
         reason = FrWupPowerOn;
     }
-    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
+    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].tcvr_state ==
         NCodecPduFlexrayTransceiverStateWUP) {
         if (reason == FrWupPowerOn) {
             reason = FrWupBusAndPin;
@@ -86,7 +86,7 @@ do_ecu_run:
     /* Set the FlexRay POC State. The POC State is maintained by the NCodec and
     adjusted based on commands from the FlexRay Interface _and_ interactions
     with the FlexRay Bus (i.e. Cold Start). */
-    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
+    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].tcvr_state ==
         NCodecPduFlexrayTransceiverStateNoSignal) {
         flexray_anycpu_set_poc_state(
             FLEXRAY_CC_INDEX, FLEXRAY_CH_A, NCodecPduFlexrayPocStateUndefined);

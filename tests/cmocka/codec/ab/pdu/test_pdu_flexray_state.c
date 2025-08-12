@@ -19,7 +19,7 @@
 #define MIMETYPE                                                               \
     "application/x-automotive-bus; "                                           \
     "interface=stream;type=pdu;schema=fbs;"                                    \
-    "ecu_id=1;cc_id=0;swc_id=1;vcn=2"
+    "ecu_id=1;cc_id=0;swc_id=1;vcn=2;pon=off"
 
 
 extern NCodecConfigItem codec_stat(NCODEC* nc, int* index);
@@ -90,17 +90,17 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandConfig, 
+                    .command = NCodecPduFlexrayCommandConfig,
                     .poc_state = NCodecPduFlexrayPocStateConfig,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateNoSignal,
                 },
                 {
-                    .command = NCodecPduFlexrayCommandReady, 
+                    .command = NCodecPduFlexrayCommandReady,
                     .poc_state = NCodecPduFlexrayPocStateReady,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
                 },
                 {
-                    .command = NCodecPduFlexrayCommandRun, 
+                    .command = NCodecPduFlexrayCommandRun,
                     .poc_state = NCodecPduFlexrayPocStateNormalActive,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
                 },
@@ -113,17 +113,17 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandConfig, 
+                    .command = NCodecPduFlexrayCommandConfig,
                     .poc_state = NCodecPduFlexrayPocStateConfig,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateNoSignal,
                 },
                 {
-                    .command = NCodecPduFlexrayCommandReady, 
+                    .command = NCodecPduFlexrayCommandReady,
                     .poc_state = NCodecPduFlexrayPocStateReady,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
                 },
                 {
-                    .command = NCodecPduFlexrayCommandConfig, 
+                    .command = NCodecPduFlexrayCommandConfig,
                     .poc_state = NCodecPduFlexrayPocStateConfig,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateNoSignal,
                 },
@@ -136,7 +136,7 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandNop, 
+                    .command = NCodecPduFlexrayCommandNop,
                     .poc_state = NCodecPduFlexrayPocStateNormalActive,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
                 },
@@ -149,7 +149,7 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandNop, 
+                    .command = NCodecPduFlexrayCommandNop,
                     .poc_state = NCodecPduFlexrayPocStateNormalActive,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
                 },
@@ -162,7 +162,7 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandNop, 
+                    .command = NCodecPduFlexrayCommandNop,
                     .poc_state = NCodecPduFlexrayPocStateNormalActive,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
                 },
@@ -175,12 +175,12 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandHalt, 
+                    .command = NCodecPduFlexrayCommandHalt,
                     .poc_state = NCodecPduFlexrayPocStateHalt,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateNoConnection,
                 },
                 {
-                    .command = NCodecPduFlexrayCommandConfig, 
+                    .command = NCodecPduFlexrayCommandConfig,
                     .poc_state = NCodecPduFlexrayPocStateDefaultConfig,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateNoSignal,
                 },
@@ -193,7 +193,7 @@ void test_flexray__node_state_changes(void** _state)
             .length = 4,
             .transition = {
                 {
-                    .command = NCodecPduFlexrayCommandFreeze, 
+                    .command = NCodecPduFlexrayCommandFreeze,
                     .poc_state = NCodecPduFlexrayPocStateFreeze,
                     .tcvr_state = NCodecPduFlexrayTransceiverStateNoConnection,
                 },
@@ -299,7 +299,7 @@ void test_flexray__bus_condition(void** _state)
             register_vcs_node_state(state, checks[i].vcs_n1);
         if (checks[i].vcs_n2.node_id)
             register_vcs_node_state(state, checks[i].vcs_n2);
-        register_node_state(state, checks[i].node);
+        register_node_state(state, checks[i].node, false, true);
         assert_int_equal(
             checks[i].vcs_node_count, vector_len(&state->vcs_node));
         assert_int_equal(1, vector_len(&state->node_state));

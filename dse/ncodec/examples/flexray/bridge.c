@@ -162,7 +162,7 @@ int bridge_step(void)
             .metadata.status = {
                 .macrotick = FlexrayMT,
                 .cycle = FlexrayCycle,
-                .channel[0].state = FlexrayState,
+                .channel[0].tcvr_state = FlexrayState,
             },
         },
     });

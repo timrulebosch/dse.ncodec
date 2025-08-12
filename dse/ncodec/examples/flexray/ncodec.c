@@ -65,7 +65,7 @@ NCodecPduFlexrayStatus get_status(NCODEC* nc)
             fr_status = pdu.transport.flexray.metadata.status;
         }
     }
-    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].state ==
+    if (fr_status.channel[NCodecPduFlexrayChannelStatusA].tcvr_state ==
         NCodecPduFlexrayTransceiverStateNoSignal) {
         /* The ncodec_read() did not return a status metadata block. */
         fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state =
@@ -74,7 +74,7 @@ NCodecPduFlexrayStatus get_status(NCODEC* nc)
 
     /* Return status. */
     printf("Txcvr State: %d\n",
-        fr_status.channel[NCodecPduFlexrayChannelStatusA].state);
+        fr_status.channel[NCodecPduFlexrayChannelStatusA].tcvr_state);
     printf("POC State: %d\n",
         fr_status.channel[NCodecPduFlexrayChannelStatusA].poc_state);
     return fr_status;

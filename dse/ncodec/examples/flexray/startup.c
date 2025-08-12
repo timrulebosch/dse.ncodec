@@ -45,7 +45,7 @@ static void push_command(NCodecPduFlexrayPocCommand poc_cmd)
         .transport.flexray = {
             .metadata_type = NCodecPduFlexrayMetadataTypeStatus,
             .metadata.status = {
-                .channel[FLEXRAY_CH_A].command = poc_cmd,
+                .channel[FLEXRAY_CH_A].poc_command = poc_cmd,
             },
         },
     });

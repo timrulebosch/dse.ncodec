@@ -9,6 +9,6 @@ extern int run_codec_tests(void);
 int main()
 {
     int rc = 0;
-    //rc |= run_codec_tests();
+    rc |= run_codec_tests();
     return rc;
 }

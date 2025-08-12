@@ -210,13 +210,14 @@ typedef enum {
 } NCodecPduFlexrayChannelStatus;
 
 typedef enum {
-    NCodecPduFlexrayTransceiverStateNoPower = 0,
-    NCodecPduFlexrayTransceiverStateNoConnection = 1,
-    NCodecPduFlexrayTransceiverStateNoSignal = 2,
-    NCodecPduFlexrayTransceiverStateCAS = 3,
-    NCodecPduFlexrayTransceiverStateWUP = 4,
-    NCodecPduFlexrayTransceiverStateFrameSync = 5,
-    NCodecPduFlexrayTransceiverStateFrameError = 6,
+    NCodecPduFlexrayTransceiverStateNone = 0,
+    NCodecPduFlexrayTransceiverStateNoPower = 1,
+    NCodecPduFlexrayTransceiverStateNoConnection = 2,
+    NCodecPduFlexrayTransceiverStateNoSignal = 3,
+    NCodecPduFlexrayTransceiverStateCAS = 4,
+    NCodecPduFlexrayTransceiverStateWUP = 5,
+    NCodecPduFlexrayTransceiverStateFrameSync = 6,
+    NCodecPduFlexrayTransceiverStateFrameError = 7,
 } NCodecPduFlexrayTransceiverState;
 
 typedef enum {
@@ -256,8 +257,8 @@ typedef enum {
 typedef enum {
     NCodecPduFlexrayLpduConfigSet = 0,
     NCodecPduFlexrayLpduConfigFrameTableSet = 1,
-    NCodecPduFlexrayLpduConfigFrameTableMerge = 1,
-    NCodecPduFlexrayLpduConfigFrameTableDelete = 1,
+    NCodecPduFlexrayLpduConfigFrameTableMerge = 2,
+    NCodecPduFlexrayLpduConfigFrameTableDelete = 3,
 } NCodecPduFlexrayConfigOp;
 
 typedef struct NCodecPduFlexrayLpdu {
@@ -276,10 +277,10 @@ typedef struct NCodecPduFlexrayLpdu {
 
 typedef struct NCodecPduFlexrayLpduConfig {
     /* Communication Cycle parameters. */
-    uint16_t frame_id;         /* 1..2047 */
-    uint8_t  payload_length;   /* 0..254 */
-    uint8_t  cycle_repetition; /* 0..63 */
-    uint8_t  base_cycle;       /* 0..63 */
+    uint16_t frame_id; /* 1..2047 */  // FIXME: slot_id ?
+    uint8_t  payload_length;          /* 0..254 */
+    uint8_t  cycle_repetition;        /* 0..63 */
+    uint8_t  base_cycle;              /* 0..63 */
 
     /* Indexes. */
     struct {
@@ -339,10 +340,10 @@ typedef struct NCodecPduFlexrayStatus {
 
     /* Channel Status ([0] == CH_A, [1] == CH_B). */
     struct {
-        NCodecPduFlexrayTransceiverState state;
+        NCodecPduFlexrayTransceiverState tcvr_state;  // FIXME: to tcvr_state
         NCodecPduFlexrayPocState         poc_state;
         /* Command interface (from controller). */
-        NCodecPduFlexrayPocCommand       command;
+        NCodecPduFlexrayPocCommand       poc_command;  // FIXME: to poc_
     } channel[NCodecPduFlexrayChannelStatusSize];
 } NCodecPduFlexrayStatus;
 
