@@ -37,7 +37,7 @@ typedef struct Mock {
 
 static NCodecPduFlexrayConfig cc_config = {
     .bit_rate = NCodecPduFlexrayBitrate10,
-    .channels_enable = NCodecPduFlexrayChannelA,
+    .channel_enable = NCodecPduFlexrayChannelA,
     .macrotick_per_cycle = 3361u,
     .microtick_per_cycle = 200000u,
     .network_idle_start = (3361u - 5u - 1u),
@@ -199,11 +199,11 @@ void test_flexray__engine_cycle__with_frame_config(void** state)
     Mock*                      mock = *state;
     NCodecPduFlexrayConfig     config = cc_config;
     NCodecPduFlexrayLpduConfig frame_table[] = {
-        { .frame_id = 24,
+        { .slot_id = 24,
             .payload_length = 64,
             .base_cycle = 0,
             .cycle_repetition = 1 },
-        { .frame_id = 155,
+        { .slot_id = 155,
             .payload_length = 64,
             .direction = NCodecPduFlexrayDirectionTx,
             .status = NCodecPduFlexrayLpduStatusNotTransmitted },
@@ -365,7 +365,7 @@ typedef struct {
     } condition;
     struct {
         /* Frame Config Entry - TX.*/
-        uint16_t                     frame_id;
+        uint16_t                     slot_id;
         int8_t                       base;
         int8_t                       repeat;
         uint64_t                     node_id;
@@ -374,7 +374,7 @@ typedef struct {
     } lpdu_tx;
     struct {
         /* Frame Config Entry - RX.*/
-        uint16_t                   frame_id;
+        uint16_t                   slot_id;
         int8_t                     base;
         int8_t                     repeat;
         uint64_t                   node_id;
@@ -413,12 +413,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 0 TX 0 1 / RX 0 1 : Cycle 0 -  xfer */
             .condition = { .mt = 0, .cycle = 0, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 1,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 1,
                 .node_id = 1,
@@ -431,12 +431,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 1 TX 0 1 / RX 0 1 : Cycle 3 -  xfer */
             .condition = { .mt = 0, .cycle = 3, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 1,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 1,
                 .node_id = 1,
@@ -449,12 +449,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 2 TX 0 4 / RX 0 4 : Cycle 2 - no xfer */
             .condition = { .mt = 0, .cycle = 2, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -467,12 +467,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 3 TX 0 4 / RX 0 4 : Cycle 4 - xfer */
             .condition = { .mt = 0, .cycle = 4, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -485,12 +485,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 4 TX 3 4 / RX 3 4 : Cycle 4 -  no xfer */
             .condition = { .mt = 0, .cycle = 4, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 1,
@@ -503,12 +503,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 5 TX 3 4 / RX 3 4 : Cycle 7 -  xfer */
             .condition = { .mt = 0, .cycle = 7, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 1,
@@ -521,12 +521,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 6 TX 0 4 / RX 0 4 : Cycle 4 - status no xfer */
             .condition = { .mt = 0, .cycle = 4, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -539,12 +539,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 7 TX 3 4 / RX 3 4 : Cycle 11 -  tx diff node, rx xfer only */
             .condition = { .mt = 0, .cycle = 11, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 4,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 1,
@@ -557,12 +557,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 8 TX 3 4 / RX 3 4 : Cycle 11 -  rx diff node, tx xfer only */
             .condition = { .mt = 0, .cycle = 11, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 4,
@@ -575,12 +575,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 9 TX 3 4 / RX 3 4 : Cycle 11 -  tx/rx diff node, no xfer */
             .condition = { .mt = 0, .cycle = 11, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 3,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 3,
                 .repeat = 4,
                 .node_id = 4,
@@ -593,12 +593,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 10 TX 0 4 / RX 0 4 : Cycle 4 - boundary static, no xfer */
             .condition = { .mt = (55 * (38 - 3)), .cycle = 5, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 38,
+            .lpdu_tx = { .slot_id = 38,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 38,
+            .lpdu_rx = { .slot_id = 38,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -611,12 +611,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 11 TX 0 4 / RX 0 4 : Cycle 4 - boundary static, xfer */
             .condition = { .mt = (55 * (38 - 3)), .cycle = 4, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 38,
+            .lpdu_tx = { .slot_id = 38,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 38,
+            .lpdu_rx = { .slot_id = 38,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -629,12 +629,12 @@ void test_flexray__engine_txrx__frames(void** state)
         {
             /* 12 TX - - / RX - - : boundary dynamic, xfer */
             .condition = { .mt = (55 * (38 - 3)), .cycle = 7, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 39,
+            .lpdu_tx = { .slot_id = 39,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 39,
+            .lpdu_rx = { .slot_id = 39,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 1,
@@ -649,12 +649,12 @@ void test_flexray__engine_txrx__frames(void** state)
             .condition = { .mt = ((55 * 38) + (6 * 211 - (6 * 3))),
                 .cycle = 9,
                 .node_id = 1 },
-            .lpdu_tx = { .frame_id = 249,
+            .lpdu_tx = { .slot_id = 249,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 249,
+            .lpdu_rx = { .slot_id = 249,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 1,
@@ -669,12 +669,12 @@ void test_flexray__engine_txrx__frames(void** state)
             .condition = { .mt = ((55 * 38) + (6 * (42 - 38 - 3))),
                 .cycle = 42,
                 .node_id = 1 },
-            .lpdu_tx = { .frame_id = 42,
+            .lpdu_tx = { .slot_id = 42,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 4,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 42,
+            .lpdu_rx = { .slot_id = 42,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 1,
@@ -689,12 +689,12 @@ void test_flexray__engine_txrx__frames(void** state)
             .condition = { .mt = ((55 * 38) + (6 * (42 - 38 - 3))),
                 .cycle = 42,
                 .node_id = 1 },
-            .lpdu_tx = { .frame_id = 42,
+            .lpdu_tx = { .slot_id = 42,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 1,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 42,
+            .lpdu_rx = { .slot_id = 42,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 5,
@@ -709,12 +709,12 @@ void test_flexray__engine_txrx__frames(void** state)
             .condition = { .mt = ((55 * 38) + (6 * (42 - 38 - 3))),
                 .cycle = 42,
                 .node_id = 1 },
-            .lpdu_tx = { .frame_id = 42,
+            .lpdu_tx = { .slot_id = 42,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 6,
                 .status = S_NOT_TX },
-            .lpdu_rx = { .frame_id = 42,
+            .lpdu_rx = { .slot_id = 42,
                 .base = 0,
                 .repeat = 0,
                 .node_id = 7,
@@ -728,13 +728,13 @@ void test_flexray__engine_txrx__frames(void** state)
             /* 17 TX 0 4 / RX 0 4 : Cycle 4 - TransmitModeContinuous at frame
                level */
             .condition = { .mt = 0, .cycle = 4, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
                 .status = S_NOT_TX,
                 .tx_mode = NCodecPduFlexrayTransmitModeContinuous },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -748,13 +748,13 @@ void test_flexray__engine_txrx__frames(void** state)
             /* 18 TX 0 4 / RX 0 4 : Cycle 4 - TransmitModeContinuous at frame
                level, diff tx node */
             .condition = { .mt = 0, .cycle = 4, .node_id = 1 },
-            .lpdu_tx = { .frame_id = 2,
+            .lpdu_tx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 4,
                 .status = S_NOT_TX,
                 .tx_mode = NCodecPduFlexrayTransmitModeContinuous },
-            .lpdu_rx = { .frame_id = 2,
+            .lpdu_rx = { .slot_id = 2,
                 .base = 0,
                 .repeat = 4,
                 .node_id = 1,
@@ -778,7 +778,7 @@ void test_flexray__engine_txrx__frames(void** state)
         /* TX Frame. */
         // frame_table[0].node_ident.node_id =  checks[step].lpdu_tx.node_id;
         frame_table_0[0].direction = NCodecPduFlexrayDirectionTx;
-        frame_table_0[0].frame_id = checks[step].lpdu_tx.frame_id;
+        frame_table_0[0].slot_id = checks[step].lpdu_tx.slot_id;
         frame_table_0[0].base_cycle = checks[step].lpdu_tx.base;
         frame_table_0[0].cycle_repetition = checks[step].lpdu_tx.repeat;
         frame_table_0[0].transmit_mode = checks[step].lpdu_tx.tx_mode;
@@ -786,7 +786,7 @@ void test_flexray__engine_txrx__frames(void** state)
         /* RX Frame. */
         // frame_table[0].node_ident.node_id =  checks[step].lpdu_rx.node_id;
         frame_table_1[0].direction = NCodecPduFlexrayDirectionRx;
-        frame_table_1[0].frame_id = checks[step].lpdu_rx.frame_id;
+        frame_table_1[0].slot_id = checks[step].lpdu_rx.slot_id;
         frame_table_1[0].base_cycle = checks[step].lpdu_rx.base;
         frame_table_1[0].cycle_repetition = checks[step].lpdu_rx.repeat;
         frame_table_1[0].status = checks[step].lpdu_rx.status;
@@ -799,7 +799,7 @@ void test_flexray__engine_txrx__frames(void** state)
 #define PAYLOAD "hello world"
         assert_int_equal(
             0, set_payload(engine, config_0.node_ident.node_id,
-                   frame_table_0[0].frame_id, frame_table_0[0].status,
+                   frame_table_0[0].slot_id, frame_table_0[0].status,
                    (uint8_t*)PAYLOAD, strlen(PAYLOAD)));
 
         /* Progress one sim step. */

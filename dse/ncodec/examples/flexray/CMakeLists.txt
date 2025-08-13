@@ -19,6 +19,9 @@ add_executable(${BRIDGE_TARGET_NAME}
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/engine.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/state.c
     ${DSE_NCODEC_SOURCE_DIR}/codec.c
     ${FLATCC_SOURCE_DIR}/builder.c
     ${FLATCC_SOURCE_DIR}/emitter.c
@@ -50,6 +53,9 @@ add_executable(${WUP_TARGET_NAME}
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/engine.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/state.c
     ${DSE_NCODEC_SOURCE_DIR}/codec.c
     ${FLATCC_SOURCE_DIR}/builder.c
     ${FLATCC_SOURCE_DIR}/emitter.c
@@ -80,6 +86,9 @@ add_executable(${STARTUP_TARGET_NAME}
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/engine.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/state.c
     ${DSE_NCODEC_SOURCE_DIR}/codec.c
     ${FLATCC_SOURCE_DIR}/builder.c
     ${FLATCC_SOURCE_DIR}/emitter.c
@@ -110,6 +119,9 @@ add_executable(${TXTR_TARGET_NAME}
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/pdu_fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/engine.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/fbs.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/state.c
     ${DSE_NCODEC_SOURCE_DIR}/codec.c
     ${FLATCC_SOURCE_DIR}/builder.c
     ${FLATCC_SOURCE_DIR}/emitter.c

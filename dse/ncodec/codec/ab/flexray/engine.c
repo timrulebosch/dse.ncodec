@@ -84,7 +84,7 @@ int process_config(NCodecPduFlexrayConfig* config, FlexRayEngine* engine)
             vector_make(sizeof(VectorSlotMapItem), 0, VectorSlotMapItemCompar);
     }
     for (size_t i = 0; i < config->frame_config.count; i++) {
-        uint16_t slot_id = config->frame_config.table[i].frame_id;
+        uint16_t slot_id = config->frame_config.table[i].slot_id;
 
         /* Find the Slot Map entry. */
         VectorSlotMapItem* slot_map_item = NULL;

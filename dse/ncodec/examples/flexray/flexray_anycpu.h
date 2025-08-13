@@ -21,7 +21,7 @@ typedef enum {
 } FrWupReasonType;
 
 typedef struct FlexrayFrameConfig {
-    uint16_t frame_id;
+    uint16_t slot_id;
     uint8_t  payload_length;
     uint8_t  cycle_config;
     uint16_t frame_config_table;
@@ -48,7 +48,7 @@ typedef struct FlexrayControllerConfig {
 
     NCodecPduFlexrayBitrate      bit_rate;
     NCodecPduFlexrayTransmitMode transmit_mode;
-    NCodecPduFlexrayChannel      channels_enable;
+    NCodecPduFlexrayChannel      channel_enable;
 
     /* Codestart & Sync Config. */
     bool           coldstart_node;

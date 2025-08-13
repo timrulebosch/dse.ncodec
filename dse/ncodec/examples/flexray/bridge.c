@@ -36,7 +36,7 @@ static uint8_t  FlexrayState = NCodecPduFlexrayTransceiverStateFrameSync;
 typedef struct FlexrayLpdu {
     /* Configuration items. */
     uint8_t        channel;
-    uint16_t       frame_id;
+    uint16_t       slot_id;
     uint8_t        base_cycle;
     uint8_t        cycle_repetition;
     /* Instance items. */
@@ -52,7 +52,7 @@ static void flexray_tx(FlexrayLpdu* lpdu)
 }
 static FlexrayLpdu* flexray_rx(void)
 {
-    static FlexrayLpdu __lpdu = { .frame_id = 42,
+    static FlexrayLpdu __lpdu = { .slot_id = 42,
         .cycle = 23,
         .payload = NULL,
         .payload_len = 0,
@@ -113,7 +113,7 @@ int bridge_step(void)
         }
         NCodecPduFlexrayLpduConfig lpdu_config = lookup(pdu.id);
         flexray_tx(&(struct FlexrayLpdu){
-            .frame_id = pdu.id,
+            .slot_id = pdu.id,
             .payload = pdu.payload,  // Called API does immediate memcpy()!
             .payload_len = pdu.payload_len,
             .channel = lpdu_config.channel,
@@ -132,7 +132,7 @@ int bridge_step(void)
     for (FlexrayLpdu* lpdu = NULL; (lpdu = flexray_rx()) != NULL;) {
         /* clang-format off */
         ncodec_write(nc, &(struct NCodecPdu){
-            .id = lpdu->frame_id,
+            .id = lpdu->slot_id,
             .payload = lpdu->payload,
             .payload_len = lpdu->payload_len,
             .transport_type = NCodecPduTransportTypeFlexray,

@@ -3,12 +3,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <stdio.h>
+#include <dse/logger.h>
 #include <dse/ncodec/codec.h>
 #include <dse/ncodec/interface/pdu.h>
 #include <dse/ncodec/stream/stream.h>
 #include <flexray_anycpu.h>
 
 #define UNUSED(x) ((void)x)
+
+
+uint8_t __log_level__ = LOG_QUIET; /* LOG_QUIET LOG_INFO LOG_DEBUG LOG_TRACE */
+
 
 static void trace_read(NCODEC* nc, NCodecMessage* m)
 {
@@ -90,7 +95,7 @@ void push_config(NCODEC* nc)
     for (size_t i = 0; i < config->frame_config_length; i++) {
         FlexrayFrameConfig* frame = &config->frame_config_table[i];
         frame_table[i] = (NCodecPduFlexrayLpduConfig){
-            .frame_id = frame->frame_id,
+            .slot_id = frame->slot_id,
             .payload_length = frame->payload_length,
             .cycle_repetition = frame->cycle_config & 0x0f,
             .base_cycle = (frame->cycle_config & 0xf0) >> 4,
@@ -120,7 +125,7 @@ void push_config(NCODEC* nc)
                 .static_slot_payload_length = config->static_slot_payload_length,
 
                 .bit_rate = config->bit_rate,
-                .channels_enable = config->channels_enable,
+                .channel_enable = config->channel_enable,
 
                 .coldstart_node = config->coldstart_node,
                 .sync_node = config->sync_node,

@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <dse/clib/collections/vector.h>
 #include <dse/ncodec/interface/pdu.h>
-
+#include <dse/ncodec/interface/pdu.h>
+#include <dse/ncodec/schema/abs/stream/pdu_builder.h>
 
 typedef struct FlexRayNodeState {
     NCodecPduFlexrayNodeIdentifier node_ident;
@@ -103,5 +104,14 @@ FlexRayNodeState get_node_state(
     FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid);
 void set_node_power(
     FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on);
+
+
+/* fbs.c */
+#undef ns
+#define ns(x) FLATBUFFERS_WRAP_NAMESPACE(AutomotiveBus_Stream_Pdu, x)
+void     decode_flexray_metadata(ns(Pdu_table_t) pdu, NCodecPdu* _pdu);
+uint32_t emit_flexray_metadata(flatcc_builder_t* B, NCodecPdu* _pdu);
+#undef ns
+
 
 #endif  // DSE_NCODEC_CODEC_AB_FLEXRAY_FLEXRAY_H_

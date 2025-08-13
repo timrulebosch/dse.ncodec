@@ -43,10 +43,10 @@ PACKAGE_NAME = dse.ncodec
 PACKAGE_NAME_LC = dse.ncodec
 PACKAGE_PATH = $(NAMESPACE)/dist
 
+#		--user $$(id -u):$$(id -g) \
 
 ifneq ($(CI), true)
 	DOCKER_BUILDER_CMD := docker run -it --rm \
-		--user $$(id -u):$$(id -g) \
 		--env CMAKE_TOOLCHAIN_FILE=/tmp/repo/extra/cmake/$(PACKAGE_ARCH).cmake \
 		--env EXTERNAL_BUILD_DIR=$(EXTERNAL_BUILD_DIR) \
 		--env PACKAGE_ARCH=$(PACKAGE_ARCH) \

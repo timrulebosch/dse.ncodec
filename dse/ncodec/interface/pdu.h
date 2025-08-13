@@ -277,7 +277,7 @@ typedef struct NCodecPduFlexrayLpdu {
 
 typedef struct NCodecPduFlexrayLpduConfig {
     /* Communication Cycle parameters. */
-    uint16_t frame_id; /* 1..2047 */  // FIXME: slot_id ?
+    uint16_t slot_id;                 /* 1..2047 */
     uint8_t  payload_length;          /* 0..254 */
     uint8_t  cycle_repetition;        /* 0..63 */
     uint8_t  base_cycle;              /* 0..63 */
@@ -296,7 +296,7 @@ typedef struct NCodecPduFlexrayLpduConfig {
 } NCodecPduFlexrayLpduConfig;
 
 typedef struct NCodecPduFlexrayConfig {
-    NCodecPduFlexrayNodeIdentifier node_ident;
+    NCodecPduFlexrayNodeIdentifier node_ident;  // FIXME: duplicated here, really needed ?
     NCodecPduFlexrayConfigOp       operation;
 
     /* Communication Cycle Config. */
@@ -310,7 +310,7 @@ typedef struct NCodecPduFlexrayConfig {
     uint32_t static_slot_payload_length; /* 0..254 */
 
     NCodecPduFlexrayBitrate bit_rate;
-    NCodecPduFlexrayChannel channels_enable;
+    NCodecPduFlexrayChannel channel_enable;
 
     /* Codestart & Sync Config. */
     bool           coldstart_node;
@@ -340,10 +340,10 @@ typedef struct NCodecPduFlexrayStatus {
 
     /* Channel Status ([0] == CH_A, [1] == CH_B). */
     struct {
-        NCodecPduFlexrayTransceiverState tcvr_state;  // FIXME: to tcvr_state
+        NCodecPduFlexrayTransceiverState tcvr_state;
         NCodecPduFlexrayPocState         poc_state;
         /* Command interface (from controller). */
-        NCodecPduFlexrayPocCommand       poc_command;  // FIXME: to poc_
+        NCodecPduFlexrayPocCommand       poc_command;
     } channel[NCodecPduFlexrayChannelStatusSize];
 } NCodecPduFlexrayStatus;
 
@@ -355,6 +355,7 @@ typedef enum {
 } NCodecPduFlexrayMetadataType;
 
 typedef struct NCodecPduFlexrayTransport {
+    NCodecPduFlexrayNodeIdentifier node_ident;
     NCodecPduFlexrayMetadataType metadata_type;
     union {
         struct {
@@ -381,10 +382,10 @@ typedef struct NCodecPdu {
     /* Sender identifying properties (optional), default values are taken
        from the stream MIME Type parameters. */
     uint16_t ecu_id;
-    uint16_t cc_id;
     uint32_t swc_id;
 
     /* Transport Metadata. */
+    // TODO: Update types here for consistency (i.e. ...Transport).
     NCodecPduTransportType transport_type;
     union {
         struct {
@@ -392,7 +393,7 @@ typedef struct NCodecPdu {
         NCodecPduCanMessageMetadata can_message;
         NCodecPduIpMessageMetadata  ip_message;
         NCodecPduStructMetadata     struct_object;
-        NCodecPduFlexrayTransport   flexray;
+        NCodecPduFlexrayTransport   flexray;  // TODO: should the schema table names change ?
     } transport;
 
     /* Simulation Metadata. */

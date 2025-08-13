@@ -25,7 +25,7 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
 {
     static FlexrayFrameConfig frames[] = {
         {
-            .frame_id = 10,
+            .slot_id = 10,
             .payload_length = 64,
             .cycle_config = 0x02,
             .frame_config_table = 0, /* Self index. */
@@ -35,7 +35,7 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
             .transmit_mode = NCodecPduFlexrayTransmitModeSingleShot,
         },
         {
-            .frame_id = 12,
+            .slot_id = 12,
             .payload_length = 128,
             .cycle_config = 0x14,
             .frame_config_table = 1, /* Self index. */
@@ -59,7 +59,7 @@ FlexrayControllerConfig* flexray_anycpu_get_config(void)
         .static_slot_payload_length = 254,
         .bit_rate = NCodecPduFlexrayBitrate10,
         .transmit_mode = NCodecPduFlexrayTransmitModeSingleShot,
-        .channels_enable = NCodecPduFlexrayChannelA,
+        .channel_enable = NCodecPduFlexrayChannelA,
 
         /* Codestart & Sync Config. */
         .coldstart_node = true,
