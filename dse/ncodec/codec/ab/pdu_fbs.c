@@ -243,13 +243,18 @@ int32_t pdu_write(NCODEC* nc, NCodecPdu* pdu)
         _pdu->transport.flexray.node_ident.node.ecu_id = ecu_id;
         _pdu->transport.flexray.node_ident.node.cc_id = cc_id;
         _pdu->transport.flexray.node_ident.node.swc_id = swc_id;
-        if (_pdu->transport.flexray.metadata_type == NCodecPduFlexrayMetadataTypeConfig) {
+        if (_pdu->transport.flexray.metadata_type ==
+            NCodecPduFlexrayMetadataTypeConfig) {
             /* Inject codec internal config. */
             _pdu->transport.flexray.metadata.config.vcn_count = _nc->vcn_count;
-            _pdu->transport.flexray.metadata.config.vcn[0] = _pdu->transport.flexray.node_ident;
-            _pdu->transport.flexray.metadata.config.vcn[1] = _pdu->transport.flexray.node_ident;
-            _pdu->transport.flexray.metadata.config.vcn[0].node.swc_id = 1; // FIXME: refine this
-            _pdu->transport.flexray.metadata.config.vcn[1].node.swc_id = 2; // FIXME: refine this
+            _pdu->transport.flexray.metadata.config.vcn[0] =
+                _pdu->transport.flexray.node_ident;
+            _pdu->transport.flexray.metadata.config.vcn[1] =
+                _pdu->transport.flexray.node_ident;
+            // TODO: refine this, probably need to change the mimetype
+            // TODO: to something like vcn1=42 vcn2=24
+            _pdu->transport.flexray.metadata.config.vcn[0].node.swc_id = 1;
+            _pdu->transport.flexray.metadata.config.vcn[1].node.swc_id = 2;
         }
         flexray_metadata = emit_flexray_metadata(B, _pdu);
     } break;
@@ -441,7 +446,7 @@ static void get_stream_from_buffer(ABCodecReader* reader)
     uint8_t* buffer;
     size_t   length;
     nc->c.stream->read((NCODEC*)nc, &buffer, &length, NCODEC_POS_NC);
-    
+
     uint8_t*       msg_ptr = buffer;
     uint8_t* const buffer_ptr = buffer;
     while ((size_t)(msg_ptr - buffer_ptr) < length) {
@@ -486,14 +491,15 @@ int32_t _reader_get_pdu(ABCodecReader* reader, NCodecPdu* pdu)
     assert(reader);
     ABCodecInstance* nc = reader->state.nc;
     assert(nc);
-    
+
     /* Process the stream/frames. */
     if (reader->state.msg_ptr == NULL) get_stream_from_buffer(reader);
     if (reader->state.vector == NULL) get_vector_from_stream(reader);
     while (reader->state.msg_ptr && reader->state.vector) {
-        for (uint32_t _vi = reader->state.vector_idx; _vi < reader->state.vector_len; _vi++) {
+        for (uint32_t _vi = reader->state.vector_idx;
+             _vi < reader->state.vector_len; _vi++) {
             ns(Pdu_table_t) p = ns(Pdu_vec_at(reader->state.vector, _vi));
-     
+
             /* Return the message. */
             pdu->id = ns(Pdu_id(p));
             flatbuffers_uint8_vec_t payload = ns(Pdu_payload(p));
@@ -526,7 +532,7 @@ int32_t _reader_get_pdu(ABCodecReader* reader, NCodecPdu* pdu)
         if (reader->state.msg_ptr) get_vector_from_stream(reader);
     }
     /* No messages in stream. */
-    
+
     nc->c.stream->seek((NCODEC*)nc, 0, NCODEC_SEEK_END);
     return -ENOMSG;
 }
@@ -541,23 +547,23 @@ int32_t _next_pdu(ABCodecInstance* nc, NCodecPdu* pdu)
         while (true) {
             int32_t rc = _reader_get_pdu(reader, pdu);
             if (rc == -ENOMSG) break;
-            if (rc < 0) return rc;  /* An error condition. */
+            if (rc < 0) return rc; /* An error condition. */
             if (reader->bus_model.vtable.consume) {
                 if (reader->bus_model.vtable.consume(&reader->bus_model, pdu)) {
-                    continue;  /* The Bus Model consumed this PDU. */
+                    continue; /* The Bus Model consumed this PDU. */
                 }
             }
             /* Filter: sender==receiver. */
             if ((nc->swc_id) && (nc->swc_id == pdu->swc_id)) continue;
-            
-            return rc;  /* PDU available, return length (i.e. rc). */
+
+            return rc; /* PDU available, return length (i.e. rc). */
         }
-        
+
         /* Done with NCodec, reset the reader. */
         _reader_reset_state(reader, true);
     }
     reader->stage.ncodec_consumed = true;
-    
+
     /* Stage: Bus Model. */
     if (reader->stage.model_produced == false) {
         ncodec_truncate((NCODEC*)reader->bus_model.nc);
@@ -568,7 +574,7 @@ int32_t _next_pdu(ABCodecInstance* nc, NCodecPdu* pdu)
         ncodec_seek((NCODEC*)reader->bus_model.nc, 0, NCODEC_SEEK_SET);
     }
     reader->stage.model_produced = true;
-    
+
     /* Stage: Model PDUs. */
     if (reader->stage.model_consumed == false) {
         if (reader->bus_model.nc) {
@@ -576,8 +582,8 @@ int32_t _next_pdu(ABCodecInstance* nc, NCodecPdu* pdu)
             while (true) {
                 int32_t rc = _reader_get_pdu(reader, pdu);
                 if (rc == -ENOMSG) break;
-                if (rc < 0) return rc;  /* An error condition. */
-                return rc;  /* PDU available, return length (i.e. rc). */
+                if (rc < 0) return rc; /* An error condition. */
+                return rc; /* PDU available, return length (i.e. rc). */
             }
 
             /* Done with Model NCodec/Stream, reset the reader. */

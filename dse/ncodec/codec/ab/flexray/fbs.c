@@ -104,6 +104,7 @@ static void _decode_flexray_lpdu(
         (ns(FlexrayLpdu_table_t))ns(FlexrayMetadata_metadata(fr));
 
     l->cycle = ns(FlexrayLpdu_cycle(fl_msg));
+    l->frame_config_index = ns(FlexrayLpdu_frame_config_index(fl_msg));
     l->null_frame = ns(FlexrayLpdu_null_frame(fl_msg));
     l->sync_frame = ns(FlexrayLpdu_sync_frame(fl_msg));
     l->startup_frame = ns(FlexrayLpdu_startup_frame(fl_msg));
@@ -139,7 +140,7 @@ void decode_flexray_metadata(ns(Pdu_table_t) pdu, NCodecPdu* _pdu)
 
 
 static uint32_t _emit_flexray_config(flatcc_builder_t* B, NCodecPdu* _pdu)
-{    
+{
     NCodecPduFlexrayConfig* c = &_pdu->transport.flexray.metadata.config;
     ns(FlexrayConfig_start(B));
 
@@ -222,6 +223,7 @@ static uint32_t _emit_flexray_lpdu(flatcc_builder_t* B, NCodecPdu* _pdu)
     ns(FlexrayLpdu_start(B));
 
     ns(FlexrayLpdu_cycle_add(B, l->cycle));
+    ns(FlexrayLpdu_frame_config_index_add(B, l->frame_config_index));
     ns(FlexrayLpdu_null_frame_add(B, l->null_frame));
     ns(FlexrayLpdu_sync_frame_add(B, l->sync_frame));
     ns(FlexrayLpdu_startup_frame_add(B, l->startup_frame));

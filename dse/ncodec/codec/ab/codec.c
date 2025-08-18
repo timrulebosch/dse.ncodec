@@ -63,13 +63,14 @@ void free_codec(ABCodecInstance* _nc)
 
     if (_nc->fbs_builder_initalized) flatcc_builder_clear(&_nc->fbs_builder);
 
-    /* The Bus Model NCodec object is a shallow copy, only free the 
+    /* The Bus Model NCodec object is a shallow copy, only free the
     specifically allocated resources. */
     if (_nc->reader.bus_model.nc != NULL) {
         if (_nc->reader.bus_model.nc->fbs_builder_initalized) {
             flatcc_builder_clear(&_nc->reader.bus_model.nc->fbs_builder);
         }
-        _nc->reader.bus_model.nc->c.stream->close((NCODEC*)_nc->reader.bus_model.nc);
+        _nc->reader.bus_model.nc->c.stream->close(
+            (NCODEC*)_nc->reader.bus_model.nc);
         free(_nc->reader.bus_model.nc);
     }
     if (_nc->reader.bus_model.model != NULL) {
@@ -83,8 +84,8 @@ void free_codec(ABCodecInstance* _nc)
 void create_bus_model(ABCodecInstance* nc)
 {
     if (strcmp(nc->type, "pdu") == 0) {
-        flexray_bus_model_create(nc);
         if (strcmp(nc->model, "flexray") == 0) {
+            flexray_bus_model_create(nc);
         }
     }
 }

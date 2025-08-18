@@ -77,16 +77,19 @@ typedef struct FlexrayLpdu {
 
     /* Payload associated with this LPDU. */
     uint8_t* payload;
+
+    /* Cycle of the last Tx/Rx for this LPDU. */
+    uint8_t cycle;
 } FlexrayLpdu;
 
 
 typedef struct FlexrayBusModel {
     NCodecPduFlexrayNodeIdentifier node_ident;
-    size_t vcn_count;
-    bool power_on;
+    size_t                         vcn_count;
+    bool                           power_on;
 
-    FlexrayState state;
     FlexrayEngine engine;
+    FlexrayState  state;  // FIXME: array for chA chB
 } FlexrayBusModel;
 
 
@@ -96,7 +99,8 @@ int  consume_slot(FlexrayEngine* engine);
 void release_config(FlexrayEngine* engine);
 int  shift_cycle(FlexrayEngine* engine, uint32_t mt, uint8_t cycle, bool force);
 int  set_payload(FlexrayEngine* engine, uint64_t node_id, uint32_t slot_id,
-     NCodecPduFlexrayLpduStatus status, uint8_t* payload, size_t payload_len);
+     NCodecPduFlexrayLpduStatus status, const uint8_t* payload,
+     size_t payload_len);
 
 int process_poc_command(
     FlexrayNodeState* state, NCodecPduFlexrayPocCommand command);

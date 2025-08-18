@@ -16,7 +16,7 @@
 typedef struct ABCodecInstance ABCodecInstance;
 typedef struct ABCodecBusModel ABCodecBusModel;
 
-//typedef struct {} BUSMODEL;
+// typedef struct {} BUSMODEL;
 typedef bool (*NCodecBusModelConsume)(ABCodecBusModel* bm, NCodecPdu* pdu);
 typedef void (*NCodecBusModelProgress)(ABCodecBusModel* bm);
 typedef void (*NCodecBusModelClose)(ABCodecBusModel* bm);
@@ -24,12 +24,12 @@ typedef void (*NCodecBusModelClose)(ABCodecBusModel* bm);
 typedef void BUSMODEL;
 
 typedef struct ABCodecBusModel {
-    BUSMODEL* model;
-    ABCodecInstance* nc;  /* Stream (via NC). */
+    BUSMODEL*        model;
+    ABCodecInstance* nc; /* Stream (via NC). */
     struct {
-        NCodecBusModelConsume consume;
+        NCodecBusModelConsume  consume;
         NCodecBusModelProgress progress;
-        NCodecBusModelClose close;
+        NCodecBusModelClose    close;
     } vtable;
 } ABCodecBusModel;
 
@@ -47,12 +47,12 @@ typedef struct ABCodecReader {
         /* Stream (via NC) maintains its own state. */
         ABCodecInstance* nc;
         /* Message parsing state. */
-        uint8_t* msg_ptr;
-        size_t   msg_len;
+        uint8_t*         msg_ptr;
+        size_t           msg_len;
         /* Vector parsing state. */
-        const uint32_t* vector; 
-        size_t     vector_idx;
-        size_t     vector_len;
+        const uint32_t*  vector;
+        size_t           vector_idx;
+        size_t           vector_len;
     } state;
     /* Bus model. */
     ABCodecBusModel bus_model;
@@ -76,9 +76,9 @@ typedef struct ABCodecInstance {
     char*   interface_id_str;
     char*   swc_id_str;
     char*   ecu_id_str;
-    char*   cc_id_str; /* Communication Controller. */
-    char*   model; /* Bus Model. */
-    char*   pwr; /* Initial power state (on|off or not set). */
+    char*   cc_id_str;     /* Communication Controller. */
+    char*   model;         /* Bus Model. */
+    char*   pwr;           /* Initial power state (on|off or not set). */
     char*   vcn_count_str; /* Count of VCNs. */
     /* Internal representation. */
     uint8_t bus_id;
@@ -97,7 +97,6 @@ typedef struct ABCodecInstance {
     /* Reader object. */
     ABCodecReader reader;
 } ABCodecInstance;
-
 
 
 #endif  // DSE_NCODEC_CODEC_AB_CODEC_H_

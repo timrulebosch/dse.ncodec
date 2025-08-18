@@ -145,6 +145,8 @@ typedef struct NCodecPduStructMetadata {
     -------------------------------------
 */
 
+#define MAX_VCN 2
+
 typedef struct NCodecPduFlexrayNodeIdentifier {
     union {
         uint64_t node_id;
@@ -266,7 +268,7 @@ typedef struct NCodecPduFlexrayLpdu {
     uint8_t cycle; /* 0..63 */
 
     /* Config index. */
-    uint16_t frame_config_index;
+    uint16_t frame_config_index;  // TODO: test coverage on this.
 
     /* Header Indicators. */
     bool null_frame;
@@ -280,10 +282,10 @@ typedef struct NCodecPduFlexrayLpdu {
 
 typedef struct NCodecPduFlexrayLpduConfig {
     /* Communication Cycle parameters. */
-    uint16_t slot_id;                 /* 1..2047 */
-    uint8_t  payload_length;          /* 0..254 */
-    uint8_t  cycle_repetition;        /* 0..63 */
-    uint8_t  base_cycle;              /* 0..63 */
+    uint16_t slot_id;          /* 1..2047 */
+    uint8_t  payload_length;   /* 0..254 */
+    uint8_t  cycle_repetition; /* 0..63 */
+    uint8_t  base_cycle;       /* 0..63 */
 
     /* Indexes. */
     struct {
@@ -298,15 +300,15 @@ typedef struct NCodecPduFlexrayLpduConfig {
     NCodecPduFlexrayLpduStatus   status;
 } NCodecPduFlexrayLpduConfig;
 
+
 typedef struct NCodecPduFlexrayConfig {
     /* Node Config items (Codec internal). */
-    #define MAX_VCN 2
-    NCodecPduFlexrayNodeIdentifier node_ident; // FIXME: might not need?
+    NCodecPduFlexrayNodeIdentifier node_ident;
     NCodecPduFlexrayNodeIdentifier vcn[MAX_VCN];
-    size_t vcn_count;
-    
+    size_t                         vcn_count;
+
     /* Config update operation. */
-    NCodecPduFlexrayConfigOp       operation;
+    NCodecPduFlexrayConfigOp operation;
 
     /* Communication Cycle Config. */
     uint16_t macrotick_per_cycle;        /* 10..16000 MT */
@@ -365,7 +367,7 @@ typedef enum {
 
 typedef struct NCodecPduFlexrayTransport {
     NCodecPduFlexrayNodeIdentifier node_ident;
-    NCodecPduFlexrayMetadataType metadata_type;
+    NCodecPduFlexrayMetadataType   metadata_type;
     union {
         struct {
         } none;
@@ -402,7 +404,8 @@ typedef struct NCodecPdu {
         NCodecPduCanMessageMetadata can_message;
         NCodecPduIpMessageMetadata  ip_message;
         NCodecPduStructMetadata     struct_object;
-        NCodecPduFlexrayTransport   flexray;  // TODO: should the schema table names change ?
+        NCodecPduFlexrayTransport
+            flexray;  // TODO: should the schema table names change ?
     } transport;
 
     /* Simulation Metadata. */

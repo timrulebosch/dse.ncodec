@@ -203,6 +203,7 @@ static void process_slot(FlexrayEngine* engine)
             NCodecPduFlexrayTransmitModeContinuous) {
             tx_lpdu->lpdu_config.status = NCodecPduFlexrayLpduStatusTransmitted;
         }
+        tx_lpdu->cycle = engine->pos_cycle;
         if (tx_lpdu->node_ident.node_id == engine->node_ident.node_id) {
             vector_push(&engine->txrx_list, &tx_lpdu);
         }
@@ -223,6 +224,7 @@ static void process_slot(FlexrayEngine* engine)
                     rx_lpdu->lpdu_config.payload_length - len);
                 memcpy(rx_lpdu->payload, tx_lpdu->payload, len);
             }
+            rx_lpdu->cycle = engine->pos_cycle;
             vector_push(&engine->txrx_list, &rx_lpdu);
         }
     }
@@ -361,7 +363,8 @@ int shift_cycle(FlexrayEngine* engine, uint32_t mt, uint8_t cycle, bool force)
 }
 
 int set_payload(FlexrayEngine* engine, uint64_t node_id, uint32_t slot_id,
-    NCodecPduFlexrayLpduStatus status, uint8_t* payload, size_t payload_len)
+    NCodecPduFlexrayLpduStatus status, const uint8_t* payload,
+    size_t payload_len)
 {
     /* Search for the LPDU. */
     VectorSlotMapItem* slot_map_item = NULL;
