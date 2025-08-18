@@ -25,7 +25,7 @@ extern int32_t stream_read(NCODEC* nc, uint8_t** data, size_t* len, int pos_op);
 
 typedef struct Mock {
     NCODEC*       nc;
-    FlexRayEngine engine;
+    FlexrayEngine engine;
 } Mock;
 
 
@@ -66,7 +66,7 @@ static int test_setup(void** state)
     NCodecStreamVTable* stream = ncodec_buffer_stream_create(BUFFER_LEN);
     mock->nc = (void*)ncodec_open(MIMETYPE, stream);
     assert_non_null(mock->nc);
-    mock->engine = (FlexRayEngine){ 0 };
+    mock->engine = (FlexrayEngine){ 0 };
 
     *state = mock;
     return 0;
@@ -92,8 +92,8 @@ void test_flexray__communication_parameters(void** state)
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
 
-    FlexRayEngine* engine = &mock->engine;
-    *engine = (FlexRayEngine){ .sim_step_size = SIM_STEP_SIZE };
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ .sim_step_size = SIM_STEP_SIZE };
 
     // Check calculated parameters.
     assert_int_equal(0, process_config(&config, engine));
@@ -157,8 +157,8 @@ void test_flexray__engine_cycle__empty_frame_config(void** state)
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
 
-    FlexRayEngine* engine = &mock->engine;
-    *engine = (FlexRayEngine){ 0 };
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ 0 };
     assert_int_equal(0, process_config(&config, engine));
 
     CycleCheck checks[] = {
@@ -210,8 +210,8 @@ void test_flexray__engine_cycle__with_frame_config(void** state)
     };
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_table);
-    FlexRayEngine* engine = &mock->engine;
-    *engine = (FlexRayEngine){ 0 };
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ 0 };
     assert_int_equal(0, process_config(&config, engine));
 
     CycleCheck checks[] = {
@@ -254,8 +254,8 @@ void test_flexray__engine_cycle__wrap(void** state)
     NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
-    FlexRayEngine* engine = &mock->engine;
-    *engine = (FlexRayEngine){ 0 };
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ 0 };
     assert_int_equal(0, process_config(&config, engine));
 
     CycleCheck checks[] = {
@@ -301,8 +301,8 @@ void test_flexray__engine_cycle__shift(void** state)
     NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_config__empty);
-    FlexRayEngine* engine = &mock->engine;
-    *engine = (FlexRayEngine){ 0 };
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ 0 };
     assert_int_equal(0, process_config(&config, engine));
 
     /* Shift into dynamic part should fail. */
@@ -771,8 +771,8 @@ void test_flexray__engine_txrx__frames(void** state)
         /* Configure and position. */
         config_0.node_ident.node_id = checks[step].lpdu_tx.node_id;
         config_1.node_ident.node_id = checks[step].lpdu_rx.node_id;
-        FlexRayEngine* engine = &mock->engine;
-        *engine = (FlexRayEngine){ .node_ident.node_id =
+        FlexrayEngine* engine = &mock->engine;
+        *engine = (FlexrayEngine){ .node_ident.node_id =
                                        checks[step].condition.node_id };
 
         /* TX Frame. */
@@ -812,13 +812,13 @@ void test_flexray__engine_txrx__frames(void** state)
         if (checks[step].expect.rx) txrx_len += 1;
         assert_int_equal(txrx_len, vector_len(&engine->txrx_list));
         if (checks[step].expect.tx) {
-            FlexRayLpdu* tx_lpdu = NULL;
+            FlexrayLpdu* tx_lpdu = NULL;
             vector_at(&engine->txrx_list, 0, &tx_lpdu);
             assert_int_equal(
                 checks[step].expect.tx_status, tx_lpdu->lpdu_config.status);
         }
         if (checks[step].expect.rx) {
-            FlexRayLpdu* rx_lpdu = NULL;
+            FlexrayLpdu* rx_lpdu = NULL;
             vector_at(&engine->txrx_list, txrx_len - 1, &rx_lpdu);
             assert_int_equal(
                 checks[step].expect.rx_status, rx_lpdu->lpdu_config.status);

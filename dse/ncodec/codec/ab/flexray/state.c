@@ -28,7 +28,7 @@ Adjust POC Commands according to Bus Condition.
 */
 
 static void __poc_state_transition(
-    FlexRayNodeState* state, NCodecPduFlexrayPocState target)
+    FlexrayNodeState* state, NCodecPduFlexrayPocState target)
 {
     const char* _t[] = {
         [NCodecPduFlexrayPocStateDefaultConfig] = "DefaultConfig",
@@ -51,7 +51,7 @@ static void __poc_state_transition(
     state->poc_state = target;
 }
 
-static void __set_transceiver_state(FlexRayNodeState* state)
+static void __set_transceiver_state(FlexrayNodeState* state)
 {
     const char* _t[] = {
         [NCodecPduFlexrayTransceiverStateNoPower] = "NoPower",
@@ -109,12 +109,12 @@ static void __set_transceiver_state(FlexRayNodeState* state)
 }
 
 void set_node_power(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on)
+    FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on)
 {
     /* Node states are consolidated per Node by zeroing out the `swc_id`. */
     nid.node.swc_id = 0;
-    FlexRayNodeState* node_state = vector_find(
-        &state->node_state, &(FlexRayNodeState){ .node_ident = nid }, 0, NULL);
+    FlexrayNodeState* node_state = vector_find(
+        &state->node_state, &(FlexrayNodeState){ .node_ident = nid }, 0, NULL);
     if (node_state) {
         if (power_on &&
             node_state->tcvr_state == NCodecPduFlexrayTransceiverStateNoPower) {
@@ -131,7 +131,7 @@ void set_node_power(
 }
 
 int process_poc_command(
-    FlexRayNodeState* state, NCodecPduFlexrayPocCommand command)
+    FlexrayNodeState* state, NCodecPduFlexrayPocCommand command)
 {
     log_debug("POC Command=%d, POC State=%u, Tcrv State=%u", command,
         state->poc_state, state->tcvr_state);
@@ -209,8 +209,8 @@ int process_poc_command(
 
 static int __node_ident_compar(const void* left, const void* right)
 {
-    NCodecPduFlexrayNodeIdentifier l = ((FlexRayNodeState*)left)->node_ident;
-    NCodecPduFlexrayNodeIdentifier r = ((FlexRayNodeState*)right)->node_ident;
+    NCodecPduFlexrayNodeIdentifier l = ((FlexrayNodeState*)left)->node_ident;
+    NCodecPduFlexrayNodeIdentifier r = ((FlexrayNodeState*)right)->node_ident;
 
     if (l.node_id < r.node_id) return -1;
     if (l.node_id > r.node_id) return 1;
@@ -218,17 +218,17 @@ static int __node_ident_compar(const void* left, const void* right)
 }
 
 
-void register_node_state(FlexRayState* state,
+void register_node_state(FlexrayState* state,
     NCodecPduFlexrayNodeIdentifier nid, bool pwr_on, bool pwr_off)
 {
     /* Node states are consolidated per Node by zeroing out the `swc_id`. */
     if (state->node_state.capacity == 0) {
         state->node_state =
-            vector_make(sizeof(FlexRayNodeState), 0, __node_ident_compar);
+            vector_make(sizeof(FlexrayNodeState), 0, __node_ident_compar);
     }
     nid.node.swc_id = 0;
-    FlexRayNodeState* node_state = vector_find(
-        &state->node_state, &(FlexRayNodeState){ .node_ident = nid }, 0, NULL);
+    FlexrayNodeState* node_state = vector_find(
+        &state->node_state, &(FlexrayNodeState){ .node_ident = nid }, 0, NULL);
     if (node_state == NULL) {
         /* Force power state, typically set via MIME type parameter `pon`. */
         NCodecPduFlexrayTransceiverState tcvr_state =
@@ -239,7 +239,7 @@ void register_node_state(FlexRayState* state,
             tcvr_state = NCodecPduFlexrayTransceiverStateNoPower;
         }
         vector_push(&state->node_state,
-            &(FlexRayNodeState){ .node_ident = nid, .tcvr_state = tcvr_state });
+            &(FlexrayNodeState){ .node_ident = nid, .tcvr_state = tcvr_state });
     } else {
         /* Force power state, typically set via MIME type parameter `pon`. */
         if (pwr_on) {
@@ -252,50 +252,50 @@ void register_node_state(FlexRayState* state,
 }
 
 void register_vcs_node_state(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid)
+    FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid)
 {
     if (state->vcs_node.capacity == 0) {
         state->vcs_node =
-            vector_make(sizeof(FlexRayNodeState), 0, __node_ident_compar);
+            vector_make(sizeof(FlexrayNodeState), 0, __node_ident_compar);
     }
-    if (vector_find(&state->vcs_node, &(FlexRayNodeState){ .node_ident = nid },
+    if (vector_find(&state->vcs_node, &(FlexrayNodeState){ .node_ident = nid },
             0, NULL) == NULL) {
         vector_push(&state->vcs_node,
-            &(FlexRayNodeState){ .node_ident = nid,
+            &(FlexrayNodeState){ .node_ident = nid,
                 .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync });
     }
 }
 
-void push_node_state(FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid,
+void push_node_state(FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid,
     NCodecPduFlexrayPocCommand command)
 {
     /* Node states are consolidated per Node by zeroing out the `swc_id`. */
     nid.node.swc_id = 0;
-    FlexRayNodeState* node_state = vector_find(
-        &state->node_state, &(FlexRayNodeState){ .node_ident = nid }, 0, NULL);
+    FlexrayNodeState* node_state = vector_find(
+        &state->node_state, &(FlexrayNodeState){ .node_ident = nid }, 0, NULL);
     if (node_state) {
         process_poc_command(node_state, command);
         __set_transceiver_state(node_state);
     }
 }
 
-FlexRayNodeState get_node_state(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid)
+FlexrayNodeState get_node_state(
+    FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid)
 {
     /* Node states are consolidated per Node by zeroing out the `swc_id`. */
     nid.node.swc_id = 0;
-    FlexRayNodeState node_state = { 0 };
-    vector_find(&state->node_state, &(FlexRayNodeState){ .node_ident = nid }, 0,
+    FlexrayNodeState node_state = { 0 };
+    vector_find(&state->node_state, &(FlexrayNodeState){ .node_ident = nid }, 0,
         &node_state);
     return node_state;
 }
 
-void calculate_bus_condition(FlexRayState* state)
+void calculate_bus_condition(FlexrayState* state)
 {
     int frame_sync_node_count = 0;
     /* Range over Virtual Coldstart Nodes. */
     for (size_t i = i; i < vector_len(&state->vcs_node); i++) {
-        FlexRayNodeState node_state = { 0 };
+        FlexrayNodeState node_state = { 0 };
         vector_at(&state->vcs_node, i, &node_state);
         if (node_state.tcvr_state ==
             NCodecPduFlexrayTransceiverStateFrameSync) {
@@ -304,7 +304,7 @@ void calculate_bus_condition(FlexRayState* state)
     }
     /* Range over Nodes. */
     for (size_t i = i; i < vector_len(&state->node_state); i++) {
-        FlexRayNodeState node_state = { 0 };
+        FlexrayNodeState node_state = { 0 };
         vector_at(&state->node_state, i, &node_state);
         if (node_state.tcvr_state ==
             NCodecPduFlexrayTransceiverStateFrameSync) {
@@ -320,7 +320,7 @@ void calculate_bus_condition(FlexRayState* state)
         state->bus_condition = NCodecPduFlexrayTransceiverStateFrameError;
         /* Push ActiveNormal nodes to ActivePassive. */
         for (size_t i = i; i < vector_len(&state->node_state); i++) {
-            FlexRayNodeState* node_state =
+            FlexrayNodeState* node_state =
                 vector_at(&state->node_state, i, NULL);
             if (node_state->poc_state == NCodecPduFlexrayPocStateNormalActive) {
                 node_state->poc_state = NCodecPduFlexrayPocStateNormalPassive;
@@ -334,7 +334,7 @@ void calculate_bus_condition(FlexRayState* state)
     }
 }
 
-void release_state(FlexRayState* state)
+void release_state(FlexrayState* state)
 {
     vector_reset(&state->node_state);
     vector_reset(&state->vcs_node);

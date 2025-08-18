@@ -31,10 +31,10 @@ typedef struct Mock {
     NCODEC* nc;
 
     /* Object for NodeState tests.*/
-    FlexRayNodeState node_state;
+    FlexrayNodeState node_state;
 
     /* */
-    FlexRayState flexray_state;
+    FlexrayState flexray_state;
 } Mock;
 
 
@@ -46,7 +46,7 @@ static int test_setup(void** state)
     NCodecStreamVTable* stream = ncodec_buffer_stream_create(BUFFER_LEN);
     mock->nc = (void*)ncodec_open(MIMETYPE, stream);
     assert_non_null(mock->nc);
-    mock->node_state = (FlexRayNodeState){ 0 };
+    mock->node_state = (FlexrayNodeState){ 0 };
 
     *state = mock;
     return 0;
@@ -81,7 +81,7 @@ typedef struct {
 void test_flexray__node_state_changes(void** _state)
 {
     Mock*             mock = *_state;
-    FlexRayNodeState* state = &mock->node_state;
+    FlexrayNodeState* state = &mock->node_state;
     StateSequence checks[] = {
         {
             .name = "DefautConfig --> NormalActive",
@@ -204,7 +204,7 @@ void test_flexray__node_state_changes(void** _state)
     for (size_t check = 0; check < ARRAY_SIZE(checks); check++) {
         log_info("Check %u: %s", check, checks[check].name);
         *state =
-            (FlexRayNodeState){ .poc_state = checks[check].initial_poc_state,
+            (FlexrayNodeState){ .poc_state = checks[check].initial_poc_state,
                 .tcvr_state = checks[check].initial_tcvr_state };
 
         for (size_t i = 0;
@@ -241,7 +241,7 @@ typedef struct {
 void test_flexray__bus_condition(void** _state)
 {
     Mock*         mock = *_state;
-    FlexRayState* state = &mock->flexray_state;
+    FlexrayState* state = &mock->flexray_state;
     BusConditionTestCase checks[] = {
         {
             .name = "Zero VCS Nodes",
@@ -294,7 +294,7 @@ void test_flexray__bus_condition(void** _state)
     };
     for (size_t i = 0; i < ARRAY_SIZE(checks); i++) {
         log_info("Check %u: %s", i, checks[i].name);
-        *state = (FlexRayState){ 0 };
+        *state = (FlexrayState){ 0 };
         if (checks[i].vcs_n1.node_id)
             register_vcs_node_state(state, checks[i].vcs_n1);
         if (checks[i].vcs_n2.node_id)

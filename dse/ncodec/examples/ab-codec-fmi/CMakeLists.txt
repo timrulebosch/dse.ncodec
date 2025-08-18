@@ -22,6 +22,7 @@ add_executable(${TARGET_NAME}
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/engine.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/fbs.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/state.c
+    ${DSE_NCODEC_SOURCE_DIR}/codec/ab/flexray/flexray.c
     ${DSE_NCODEC_SOURCE_DIR}/codec.c
     ${FLATCC_SOURCE_DIR}/builder.c
     ${FLATCC_SOURCE_DIR}/emitter.c

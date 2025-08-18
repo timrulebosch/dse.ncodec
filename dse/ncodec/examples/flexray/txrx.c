@@ -63,7 +63,7 @@ void do_step(double simulation_time)
     for (;;) {
         NCodecPdu pdu = {};
         if (ncodec_read(nc, &pdu) < 0) break;
-        if (pdu.transport_type != NCodecPduTransportTypeFlexray ||
+        if (pdu.transport_type == NCodecPduTransportTypeFlexray &&
             pdu.transport.flexray.metadata_type ==
                 NCodecPduFlexrayMetadataTypeLpdu) {
             NCodecPduFlexrayLpduConfig lpdu_config = lookup(pdu.id);

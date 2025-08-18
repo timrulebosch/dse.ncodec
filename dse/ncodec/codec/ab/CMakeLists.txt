@@ -21,6 +21,7 @@ add_library(ab-codec OBJECT
         flexray/engine.c
         flexray/fbs.c
         flexray/state.c
+        flexray/flexray.c
         ${DSE_NCODEC_SOURCE_DIR}/codec.c
         ${FLATCC_SOURCE_DIR}/builder.c
         ${FLATCC_SOURCE_DIR}/emitter.c

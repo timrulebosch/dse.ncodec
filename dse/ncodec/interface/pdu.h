@@ -265,6 +265,9 @@ typedef struct NCodecPduFlexrayLpdu {
     /* Header (id/payload in NCodecPdu). */
     uint8_t cycle; /* 0..63 */
 
+    /* Config index. */
+    uint16_t frame_config_index;
+
     /* Header Indicators. */
     bool null_frame;
     bool sync_frame;
@@ -296,7 +299,13 @@ typedef struct NCodecPduFlexrayLpduConfig {
 } NCodecPduFlexrayLpduConfig;
 
 typedef struct NCodecPduFlexrayConfig {
-    NCodecPduFlexrayNodeIdentifier node_ident;  // FIXME: duplicated here, really needed ?
+    /* Node Config items (Codec internal). */
+    #define MAX_VCN 2
+    NCodecPduFlexrayNodeIdentifier node_ident; // FIXME: might not need?
+    NCodecPduFlexrayNodeIdentifier vcn[MAX_VCN];
+    size_t vcn_count;
+    
+    /* Config update operation. */
     NCodecPduFlexrayConfigOp       operation;
 
     /* Communication Cycle Config. */

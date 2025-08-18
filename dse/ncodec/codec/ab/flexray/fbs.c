@@ -36,8 +36,7 @@ static void _decode_flexray_config(
         ns(FlexrayConfig_static_slot_payload_length(fc_msg));
 
     c->bit_rate = ns(FlexrayConfig_bit_rate(fc_msg));
-    c->channel_enable =
-        ns(FlexrayConfig_channels_enabled(fc_msg));  // TODO: schema update
+    c->channel_enable = ns(FlexrayConfig_channel_enable(fc_msg));
 
     c->coldstart_node = ns(FlexrayConfig_coldstart_node(fc_msg));
     c->sync_node = ns(FlexrayConfig_sync_node(fc_msg));
@@ -140,9 +139,18 @@ void decode_flexray_metadata(ns(Pdu_table_t) pdu, NCodecPdu* _pdu)
 
 
 static uint32_t _emit_flexray_config(flatcc_builder_t* B, NCodecPdu* _pdu)
-{
+{    
     NCodecPduFlexrayConfig* c = &_pdu->transport.flexray.metadata.config;
     ns(FlexrayConfig_start(B));
+
+    if (c->vcn_count > 0) {
+        ns(FlexrayConfig_vcn_start(B));
+        for (size_t i = 0; i < c->vcn_count && i < MAX_VCN; i++) {
+            ns(FlexrayConfig_vcn_push_create(B, c->vcn[i].node.ecu_id,
+                c->vcn[i].node.cc_id, c->vcn[i].node.swc_id));
+        }
+        ns(FlexrayConfig_vcn_end(B));
+    }
 
     ns(FlexrayConfig_macrotick_per_cycle_add(B, c->macrotick_per_cycle));
     ns(FlexrayConfig_microtick_per_cycle_add(B, c->microtick_per_cycle));
@@ -155,8 +163,7 @@ static uint32_t _emit_flexray_config(flatcc_builder_t* B, NCodecPdu* _pdu)
         B, c->static_slot_payload_length));
 
     ns(FlexrayConfig_bit_rate_add(B, c->bit_rate));
-    ns(FlexrayConfig_channels_enabled_add(
-        B, c->channel_enable));  // TODO: schema update
+    ns(FlexrayConfig_channel_enable_add(B, c->channel_enable));
 
     ns(FlexrayConfig_coldstart_node_add(B, c->coldstart_node));
     ns(FlexrayConfig_sync_node_add(B, c->sync_node));

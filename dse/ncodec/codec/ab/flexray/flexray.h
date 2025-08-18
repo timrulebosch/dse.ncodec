@@ -12,25 +12,25 @@
 #include <dse/ncodec/interface/pdu.h>
 #include <dse/ncodec/schema/abs/stream/pdu_builder.h>
 
-typedef struct FlexRayNodeState {
+typedef struct FlexrayNodeState {
     NCodecPduFlexrayNodeIdentifier node_ident;
 
     /* Per Node/NCodec instance. */
     NCodecPduFlexrayPocState         poc_state;
     NCodecPduFlexrayTransceiverState tcvr_state;
-} FlexRayNodeState;
+} FlexrayNodeState;
 
 
-typedef struct FlexRayState {
-    Vector node_state; /* FlexRayNodeState objects. */
+typedef struct FlexrayState {
+    Vector node_state; /* FlexrayNodeState objects. */
     Vector vcs_node;   /* Virtual coldstart nodes. */
 
     /* The resultant bus_condition. */
     NCodecPduFlexrayTransceiverState bus_condition;
-} FlexRayState;
+} FlexrayState;
 
 
-typedef struct FlexRayEngine {
+typedef struct FlexrayEngine {
     NCodecPduFlexrayNodeIdentifier node_ident;
 
     double sim_step_size;
@@ -67,42 +67,52 @@ typedef struct FlexRayEngine {
 
     Vector slot_map;
     Vector txrx_list;
-} FlexRayEngine;
+} FlexrayEngine;
 
 
-typedef struct FlexRayLpdu {
+typedef struct FlexrayLpdu {
     /* Status and config. */
     NCodecPduFlexrayNodeIdentifier node_ident;
     NCodecPduFlexrayLpduConfig     lpdu_config;
 
     /* Payload associated with this LPDU. */
     uint8_t* payload;
-} FlexRayLpdu;
+} FlexrayLpdu;
 
 
-int  process_config(NCodecPduFlexrayConfig* config, FlexRayEngine* engine);
-int  calculate_budget(FlexRayEngine* engine, double step_size);
-int  consume_slot(FlexRayEngine* engine);
-void release_config(FlexRayEngine* engine);
-int  shift_cycle(FlexRayEngine* engine, uint32_t mt, uint8_t cycle, bool force);
-int  set_payload(FlexRayEngine* engine, uint64_t node_id, uint32_t slot_id,
+typedef struct FlexrayBusModel {
+    NCodecPduFlexrayNodeIdentifier node_ident;
+    size_t vcn_count;
+    bool power_on;
+
+    FlexrayState state;
+    FlexrayEngine engine;
+} FlexrayBusModel;
+
+
+int  process_config(NCodecPduFlexrayConfig* config, FlexrayEngine* engine);
+int  calculate_budget(FlexrayEngine* engine, double step_size);
+int  consume_slot(FlexrayEngine* engine);
+void release_config(FlexrayEngine* engine);
+int  shift_cycle(FlexrayEngine* engine, uint32_t mt, uint8_t cycle, bool force);
+int  set_payload(FlexrayEngine* engine, uint64_t node_id, uint32_t slot_id,
      NCodecPduFlexrayLpduStatus status, uint8_t* payload, size_t payload_len);
 
 int process_poc_command(
-    FlexRayNodeState* state, NCodecPduFlexrayPocCommand command);
+    FlexrayNodeState* state, NCodecPduFlexrayPocCommand command);
 
-void register_node_state(FlexRayState* state,
+void register_node_state(FlexrayState* state,
     NCodecPduFlexrayNodeIdentifier nid, bool pwr_on, bool pwr_off);
 void register_vcs_node_state(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid);
-void release_state(FlexRayState* state);
-void push_node_state(FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid,
+    FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid);
+void release_state(FlexrayState* state);
+void push_node_state(FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid,
     NCodecPduFlexrayPocCommand command);
-void calculate_bus_condition(FlexRayState* state);
-FlexRayNodeState get_node_state(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid);
+void calculate_bus_condition(FlexrayState* state);
+FlexrayNodeState get_node_state(
+    FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid);
 void set_node_power(
-    FlexRayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on);
+    FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on);
 
 
 /* fbs.c */
