@@ -265,8 +265,10 @@ int32_t pdu_write(NCODEC* nc, NCodecPdu* pdu)
     // PDU Table
     ns(Stream_pdus_push_start(B));
     ns(Pdu_id_add(B, _pdu->id));
-    ns(Pdu_payload_add(
-        B, flatbuffers_uint8_vec_create(B, _pdu->payload, _pdu->payload_len)));
+    if (_pdu->payload != NULL) {
+        ns(Pdu_payload_add(B,
+            flatbuffers_uint8_vec_create(B, _pdu->payload, _pdu->payload_len)));
+    }
     ns(Pdu_swc_id_add(B, swc_id));
     ns(Pdu_ecu_id_add(B, ecu_id));
     if (can_message_metadata) {

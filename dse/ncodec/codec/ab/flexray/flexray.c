@@ -53,14 +53,16 @@ bool flexray_bus_model_consume(ABCodecBusModel* bm, NCodecPdu* pdu)
         // shift_cycle(&m->engine, 0, 0, true); // TODO: FR sync from bridge.
         break;
     case (NCodecPduFlexrayMetadataTypeLpdu):
-        log_debug("FlexRay: Consume: (%u:%u:%u) LPDU %04x (len=%u)",
+        log_debug("FlexRay: Consume: (%u:%u:%u) LPDU %04x (len=%u) status=%d",
             node_ident.node.ecu_id, node_ident.node.cc_id,
-            node_ident.node.swc_id, pdu->id, pdu->payload_len);
+            node_ident.node.swc_id, pdu->id, pdu->payload_len,
+            pdu->transport.flexray.metadata.lpdu.status);
         // TODO: Need also the config index. Currently based on slot_id
         // TODO: but needs to also have config_index, or actually use
         // TODO: config_index for the lookup (rather than slot_id).
         // TODO: *** NOT URGENT ***, Needed for CHA + B support.
-        set_payload(&m->engine, node_ident.node_id, pdu->id, 0, pdu->payload,
+        set_payload(&m->engine, node_ident.node_id, pdu->id,
+            pdu->transport.flexray.metadata.lpdu.status, pdu->payload,
             pdu->payload_len);
         break;
     default:
@@ -86,6 +88,7 @@ void flexray_bus_model_progress(ABCodecBusModel* bm)
         int rc = calculate_budget(&m->engine, SIM_STEP_SIZE);
         if (rc == 0) {
             for (; consume_slot(&m->engine) == 0;) {
+                // log_error("SLOT %d", m->engine.pos_slot);
             }
         } else {
             log_error("Call to calculate_budget() returned %d", rc);
