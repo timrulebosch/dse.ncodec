@@ -168,6 +168,7 @@ int32_t codec_config(NCODEC* nc, NCodecConfigItem item)
     if (strcmp(item.name, "vcn") == 0) {
         if (_nc->vcn_count_str) free(_nc->vcn_count_str);
         _nc->vcn_count_str = strdup(item.value);
+        _nc->vcn_count = strtoul(item.value, NULL, 10);
         return 0;
     }
 

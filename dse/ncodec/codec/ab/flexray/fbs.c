@@ -25,6 +25,13 @@ static void _decode_flexray_config(
 
     c->node_ident = _pdu->transport.flexray.node_ident;
 
+    c->vcn_count = ns(FlexrayLpduConfig_vec_len(ns(FlexrayConfig_vcn(fc_msg))));
+    // FIXME: decode this properly.
+    c->vcn[0] = _pdu->transport.flexray.node_ident;
+    c->vcn[1] = _pdu->transport.flexray.node_ident;
+    c->vcn[0].node.swc_id = 1;
+    c->vcn[1].node.swc_id = 2;
+
     c->macrotick_per_cycle = ns(FlexrayConfig_macrotick_per_cycle(fc_msg));
     c->microtick_per_cycle = ns(FlexrayConfig_microtick_per_cycle(fc_msg));
     c->network_idle_start = ns(FlexrayConfig_network_idle_start(fc_msg));

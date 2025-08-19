@@ -15,6 +15,7 @@ add_executable(test_codec_ab_pdu
     test_pdu_struct.c
     test_pdu_flexray_engine.c
     test_pdu_flexray_state.c
+    test_pdu_flexray.c
     ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c

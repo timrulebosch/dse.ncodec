@@ -240,6 +240,8 @@ void register_node_state(FlexrayState* state,
         }
         vector_push(&state->node_state,
             &(FlexrayNodeState){ .node_ident = nid, .tcvr_state = tcvr_state });
+        log_debug("Push Node State: tcvr_state=%d (nid (%d:%d:%d))", tcvr_state,
+            nid.node.ecu_id, nid.node.cc_id, nid.node.swc_id);
     } else {
         /* Force power state, typically set via MIME type parameter `pon`. */
         if (pwr_on) {
@@ -248,12 +250,18 @@ void register_node_state(FlexrayState* state,
         } else if (pwr_off) {
             node_state->tcvr_state = NCodecPduFlexrayTransceiverStateNoPower;
         }
+
+        log_debug("Register Node State: tcvr_state=%d (nid (%d:%d:%d))",
+            node_state->tcvr_state, nid.node.ecu_id, nid.node.cc_id,
+            nid.node.swc_id);
     }
 }
 
-void register_vcs_node_state(
+void register_vcn_node_state(
     FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid)
 {
+    log_debug("Register VCN Node State (nid (%d:%d:%d))", nid.node.ecu_id,
+        nid.node.cc_id, nid.node.swc_id);
     if (state->vcs_node.capacity == 0) {
         state->vcs_node =
             vector_make(sizeof(FlexrayNodeState), 0, __node_ident_compar);
@@ -263,6 +271,8 @@ void register_vcs_node_state(
         vector_push(&state->vcs_node,
             &(FlexrayNodeState){ .node_ident = nid,
                 .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync });
+        log_debug("Push VCN Node State (nid (%d:%d:%d))", nid.node.ecu_id,
+            nid.node.cc_id, nid.node.swc_id);
     }
 }
 
@@ -276,6 +286,9 @@ void push_node_state(FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid,
     if (node_state) {
         process_poc_command(node_state, command);
         __set_transceiver_state(node_state);
+    } else {
+        log_debug("Node State object not found (nid (%d:%d:%d))",
+            nid.node.ecu_id, nid.node.cc_id, nid.node.swc_id);
     }
 }
 

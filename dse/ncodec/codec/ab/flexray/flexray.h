@@ -107,7 +107,7 @@ int process_poc_command(
 
 void register_node_state(FlexrayState* state,
     NCodecPduFlexrayNodeIdentifier nid, bool pwr_on, bool pwr_off);
-void register_vcs_node_state(
+void register_vcn_node_state(
     FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid);
 void release_state(FlexrayState* state);
 void push_node_state(FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid,

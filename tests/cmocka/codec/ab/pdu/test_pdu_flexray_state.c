@@ -296,9 +296,9 @@ void test_flexray__bus_condition(void** _state)
         log_info("Check %u: %s", i, checks[i].name);
         *state = (FlexrayState){ 0 };
         if (checks[i].vcs_n1.node_id)
-            register_vcs_node_state(state, checks[i].vcs_n1);
+            register_vcn_node_state(state, checks[i].vcs_n1);
         if (checks[i].vcs_n2.node_id)
-            register_vcs_node_state(state, checks[i].vcs_n2);
+            register_vcn_node_state(state, checks[i].vcs_n2);
         register_node_state(state, checks[i].node, false, true);
         assert_int_equal(
             checks[i].vcs_node_count, vector_len(&state->vcs_node));

@@ -120,6 +120,14 @@ int process_config(NCodecPduFlexrayConfig* config, FlexrayEngine* engine)
 int calculate_budget(FlexrayEngine* engine, double step_size)
 {
     if (engine == NULL) return -EINVAL;
+    if (engine->macrotick_ns == 0) {
+        log_error("engine->macrotick_ns not configured");
+        return -EINVAL;
+    }
+    if (engine->macro2micro == 0) {
+        log_error("engine->macro2micro not configured");
+        return -EINVAL;
+    }
 
     if (step_size <= 0.0) {
         if (engine->sim_step_size <= 0.0) {
