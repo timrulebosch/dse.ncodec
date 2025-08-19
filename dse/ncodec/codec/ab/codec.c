@@ -84,7 +84,7 @@ void free_codec(ABCodecInstance* _nc)
 void create_bus_model(ABCodecInstance* nc)
 {
     if (strcmp(nc->type, "pdu") == 0) {
-        if (strcmp(nc->model, "flexray") == 0) {
+        if (nc->model && strcmp(nc->model, "flexray") == 0) {
             flexray_bus_model_create(nc);
         }
     }
