@@ -28,3 +28,15 @@ __all__ = [
 ]
 
 __version__ = "1.0.0"
+
+# Compatibility shims: re-export commonly-used flatbuffer enums/classes from the
+# generated AutomotiveBus package so existing tests and examples that expect
+# `AutomotiveBus`-style imports can access them through `ncodec`.
+from AutomotiveBus.Stream.Pdu.TransportMetadata import TransportMetadata
+from AutomotiveBus.Stream.Frame.CanFrameType import CanFrameType
+
+# Export compatibility names
+__all__.extend([
+    'TransportMetadata',
+    'CanFrameType',
+])

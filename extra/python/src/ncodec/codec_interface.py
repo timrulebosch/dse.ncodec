@@ -7,8 +7,8 @@ including PDU and CAN frame encoding/decoding operations.
 """
 
 from abc import ABC, abstractmethod
-from AutomotiveBus.mimetype import decode_mime_type
-from typing import List, TypeVar, Generic, Union, Optional, Dict
+from ncodec.mimetype import decode_mime_type
+from typing import List, TypeVar, Generic, Optional, Dict
 
 # Generic type for message types (CanMessage, PduMessage, etc.)
 MessageType = TypeVar('MessageType')
@@ -46,12 +46,12 @@ class CodecFactory:
 
     @staticmethod
     def create_pdu_codec(MimeMap: Dict[str, str], Stream: bytearray, ModelName: str, SimulationTime: float) -> ICodec:
-        from AutomotiveBus.pdu import PduCodec
+        from ncodec.pdu import PduCodec
         return PduCodec(MimeMap, Stream, ModelName, SimulationTime)
 
     @staticmethod
     def create_can_codec(MimeMap: Dict[str, str], Stream: bytearray, ModelName: str, SimulationTime: float) -> ICodec:
-        from AutomotiveBus.can import CanCodec
+        from ncodec.can import CanCodec
         return CanCodec(MimeMap, Stream, ModelName, SimulationTime)
 
     @staticmethod

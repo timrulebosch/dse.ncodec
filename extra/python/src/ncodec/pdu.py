@@ -10,8 +10,8 @@ import flatbuffers
 from typing import List, Optional, Dict
 from dataclasses import dataclass
 import ctypes
-from AutomotiveBus.mimetype import decode_mime_type
-from AutomotiveBus.codec_interface import ICodec
+from ncodec.mimetype import decode_mime_type
+from ncodec.codec_interface import ICodec
 from AutomotiveBus.Stream.Pdu import (
     TransportMetadata,
     IpProtocol, 

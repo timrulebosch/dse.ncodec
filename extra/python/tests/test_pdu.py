@@ -4,7 +4,11 @@ Test cases for PduCodec constructor
 """
 
 import unittest
-from AutomotiveBus.pdu import *
+from ncodec.pdu import PduCodec, PduMessage, NCodecIpCanMessageMetadata, NCodecIpAddr, NCodecPduIpAddrV6, NCodecPduIpAddrV4, NCodecPduSocketAdapter, NCodecPduSomeIpAdapter, NCodecPduDoIpAdapter
+from ncodec import TransportMetadata
+from AutomotiveBus.Stream.Pdu.IpProtocol import IpProtocol
+from AutomotiveBus.Stream.Pdu.IpAddr import IpAddr
+from AutomotiveBus.Stream.Pdu.SocketAdapter import SocketAdapter
 
 
 class TestPduCodecConstructor(unittest.TestCase):
@@ -20,7 +24,7 @@ class TestPduCodecConstructor(unittest.TestCase):
             payload=b"Hello World This is a test message for the test case",
             swc_id=42,
             ecu_id=99,
-            type=TransportMetadata.TransportMetadata.Ip,
+            type=TransportMetadata.Ip,
             ip_metadata=NCodecIpCanMessageMetadata(
                 eth_dst_mac=0x0000123456789ABC,
                 eth_src_mac=0x0000CBA987654321,
@@ -28,8 +32,8 @@ class TestPduCodecConstructor(unittest.TestCase):
                 eth_tci_pcp=2,
                 eth_tci_dei=3,
                 eth_tci_vid=4,
-                ip_protocol=IpProtocol.IpProtocol.Tcp,
-                ip_addr_type=IpAddr.IpAddr.v6,
+                ip_protocol=IpProtocol.Tcp,
+                ip_addr_type=IpAddr.v6,
                 ip_addr=NCodecIpAddr(
                     ip_v4=None,
                     ip_v6=NCodecPduIpAddrV6(
@@ -39,7 +43,7 @@ class TestPduCodecConstructor(unittest.TestCase):
                 ),
                 ip_src_port=0,
                 ip_dst_port=0,
-                so_ad_type=SocketAdapter.SocketAdapter.some_ip,
+                so_ad_type=SocketAdapter.some_ip,
                 so_ad=NCodecPduSocketAdapter(
                     do_ip=None,
                     some_ip=NCodecPduSomeIpAdapter(
@@ -59,7 +63,7 @@ class TestPduCodecConstructor(unittest.TestCase):
             payload=b"Hello World This is a test message for the test case",
             swc_id=42,
             ecu_id=99,
-            type=TransportMetadata.TransportMetadata.Ip,
+            type=TransportMetadata.Ip,
             ip_metadata=NCodecIpCanMessageMetadata(
                 eth_dst_mac=0x0000123456789ABC,
                 eth_src_mac=0x0000CBA987654321,
@@ -67,8 +71,8 @@ class TestPduCodecConstructor(unittest.TestCase):
                 eth_tci_pcp=2,
                 eth_tci_dei=3,
                 eth_tci_vid=4,
-                ip_protocol=IpProtocol.IpProtocol.Tcp,
-                ip_addr_type=IpAddr.IpAddr.v4,
+                ip_protocol=IpProtocol.Tcp,
+                ip_addr_type=IpAddr.v4,
                 ip_addr=NCodecIpAddr(
                     ip_v4=NCodecPduIpAddrV4(
                         src_ip=0xC0A80101,       # 192.168.1.1
@@ -78,7 +82,7 @@ class TestPduCodecConstructor(unittest.TestCase):
                 ),
                 ip_src_port=0,
                 ip_dst_port=0,
-                so_ad_type=SocketAdapter.SocketAdapter.do_ip,
+                so_ad_type=SocketAdapter.do_ip,
                 so_ad=NCodecPduSocketAdapter(
                     do_ip=NCodecPduDoIpAdapter(
                         protocol_version=1,

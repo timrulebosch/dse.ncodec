@@ -8,12 +8,13 @@ implementations using the common interface.
 
 import unittest
 from typing import List
-from AutomotiveBus.codec_interface import CodecFactory, ICodec
-from AutomotiveBus.pdu import PduMessage, PduCodec
-from AutomotiveBus.can import CanMessage, CanCodec
-from AutomotiveBus.Stream.Pdu import TransportMetadata
-from AutomotiveBus.Stream.Frame import CanFrameType
-from AutomotiveBus.can import CanSender, CanTiming
+from ncodec.codec_interface import CodecFactory, ICodec
+from ncodec.pdu import PduMessage, PduCodec
+from ncodec.can import CanMessage, CanCodec, CanSender, CanTiming
+# Note: Stream.Pdu and Stream.Frame modules are not present in the package; tests
+# reference TransportMetadata and CanFrameType. If those live in another module,
+# adjust imports accordingly. For now the tests use classes from ncodec modules.
+from ncodec import TransportMetadata, CanFrameType
 
 
 class TestCodecFactory(unittest.TestCase):
@@ -160,7 +161,7 @@ class TestPduOperations(unittest.TestCase):
         self.test_message = PduMessage(
             id=1,
             payload=b"Hello PDU",
-            type=TransportMetadata.TransportMetadata.NONE,
+            type=TransportMetadata.NONE,
             swc_id=100,
             ecu_id=200
         )
@@ -203,9 +204,9 @@ class TestPduOperations(unittest.TestCase):
     def test_write_multiple_messages(self):
         """Test writing multiple PDU messages."""
         messages = [
-            PduMessage(id=1, payload=b"Message 1", type=TransportMetadata.TransportMetadata.NONE),
-            PduMessage(id=2, payload=b"Message 2", type=TransportMetadata.TransportMetadata.NONE),
-            PduMessage(id=3, payload=b"Message 3", type=TransportMetadata.TransportMetadata.NONE)
+            PduMessage(id=1, payload=b"Message 1", type=TransportMetadata.NONE),
+            PduMessage(id=2, payload=b"Message 2", type=TransportMetadata.NONE),
+            PduMessage(id=3, payload=b"Message 3", type=TransportMetadata.NONE)
         ]
         
         self.codec.Write(messages)
@@ -257,7 +258,7 @@ class TestCanOperations(unittest.TestCase):
         
         self.test_message = CanMessage(
             frame_id=0x123,
-            frame_type=CanFrameType.CanFrameType.BaseFrame,
+            frame_type=CanFrameType.BaseFrame,
             Sender=CanSender(bus_id=1, node_id=2, interface_id=3),
             Timing=None,
             Payload=b"Hello CAN"
@@ -360,7 +361,7 @@ class TestGenericOperations(unittest.TestCase):
         message = PduMessage(
             id=42,
             payload=b"Generic PDU",
-            type=TransportMetadata.TransportMetadata.NONE
+            type=TransportMetadata.NONE
         )
         
         self.generic_codec_test(codec, message)
@@ -376,7 +377,7 @@ class TestGenericOperations(unittest.TestCase):
         
         message = CanMessage(
             frame_id=0x456,
-            frame_type=CanFrameType.CanFrameType.BaseFrame,
+            frame_type=CanFrameType.BaseFrame,
             Sender=CanSender(bus_id=1, node_id=1, interface_id=1),
             Timing=None,
             Payload=b"Generic CAN"

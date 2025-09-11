@@ -3,7 +3,7 @@ import re
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 import ctypes
-from AutomotiveBus.codec_interface import ICodec
+from ncodec.codec_interface import ICodec
 from AutomotiveBus.Stream.Frame import (
     CanFrameType,
     CanFrame,

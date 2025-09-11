@@ -4,7 +4,8 @@ Test cases for PduCodec constructor
 """
 
 import unittest
-from AutomotiveBus.can import *
+from ncodec.can import CanCodec, CanMessage, CanSender
+from ncodec import CanFrameType
 
 
 class TestPduCodecConstructor(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestPduCodecConstructor(unittest.TestCase):
         can_write_list = [
             CanMessage(
                 frame_id=1,
-                frame_type=CanFrameType.CanFrameType.BaseFrame,
+                frame_type=CanFrameType.BaseFrame,
                 Sender=CanSender(
                     bus_id=1,
                     node_id=2,
