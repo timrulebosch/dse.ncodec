@@ -4,8 +4,11 @@
 import base64
 import ctypes
 from ctypes import *
+from typing import List
 from fmpy import simulate_fmu, read_model_description, extract
 from fmpy.fmi2 import FMU2Slave
+from ncodec.codec_interface import CodecFactory, ICodec
+from ncodec.pdu import PduMessage
 
 
 # Global objects:
@@ -13,64 +16,46 @@ fmu = None
 nc = None
 network_rx_ref = None
 network_tx_ref = None
-
-
-# Setup the NCodec DLL:
-ncodecDLL = ctypes.CDLL("lib/libncodec.so")
-ncodecDLL.ncodec_open_with_stream.argtypes = [POINTER(c_char)]
-ncodecDLL.ncodec_open_with_stream.restype = c_void_p
-ncodecDLL.ncodec_write_pdu_msg.argtypes = [c_void_p,c_uint32, POINTER(c_uint8), c_size_t]
-ncodecDLL.ncodec_write_pdu_msg.restype = c_int64
-ncodecDLL.ncodec_read_pdu_msg.argtypes = [c_void_p, POINTER(c_uint32), POINTER(POINTER(c_uint8)), POINTER(c_size_t)]
-ncodecDLL.ncodec_read_pdu_msg.restype = c_int64
-ncodecDLL.ncodec_write_stream.argtypes = [c_void_p, POINTER(c_uint8), c_size_t]
-ncodecDLL.ncodec_write_stream.restype = c_int64
-ncodecDLL.ncodec_read_stream.argtypes = [c_void_p, POINTER(POINTER(c_uint8))]
-ncodecDLL.ncodec_read_stream.restype = c_size_t
-ncodecDLL.ncodec_free.argtypes = [POINTER(c_uint8)]
-ncodecDLL.ncodec_free.restype = None
-ncodecDLL.ncodec_close.argtypes = [c_void_p]
-ncodecDLL.ncodec_close.restype = None
+id : c_uint32 = 0
 
 
 def do_network():
     global nc
+    global id
 
     # Fetch the stream from FMU and write to NCodec:
-    stream = bytes()
+    stream = bytearray()
     tx_message_hex = fmu.getString([network_tx_ref])[0]
     if tx_message_hex is not None:
         stream = base64.a85decode(tx_message_hex)
-    stream_len = len(stream)
-    ncodecDLL.ncodec_write_stream(nc, (c_uint8 * stream_len)(*stream), len(stream_len))
 
     # Read messages from the NCodec:
-    id = c_uint32()
-    payload = POINTER(c_uint8)()
-    payload_len = c_size_t()
-    rc = ncodecDLL.ncodec_read_pdu_msg(nc, byref(id), byref(payload), byref(payload_len))
-    print(f"FMU Tx ({id}): {' '.join(f'{x:02X}' for x in payload)} (len={payload_len})")
-    # TODO while loop rc > 0
-    ncodecDLL.ncodec_free(payload)
+    nc.Stream = stream
+    read_pdus : List[PduMessage] = nc.Read()
+    for pdus in read_pdus:
+        print(f'  Received PDU from model: {pdus.id}')
 
     # Write messages to the NCodec:
-    message = bytes([0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x07])
-    message_len = len(message)
-    ncodecDLL.ncodec_write_pdu_msg(nc, 549, (c_uint8 * message_len)(*message), message_len, 2)
+    message = PduMessage(
+        id,
+        bytes([0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x07]),
+        0
+    )
+    id += 1
 
-    # Send the NCOdec stream to FMU:
-    stream = POINTER(c_uint8)()
-    stream_len = ncodecDLL.ncodec_read_stream(nc, stream)
-    rx_message_hex = bytes(stream[:stream_len.value])
-    rx_message_hex = base64.a85encode(rx_message_hex, adobe=False)
-    rx_message_hex = stream.decode('utf-8')
+    # Send the NCodec stream to FMU:
+    nc.Write([message])
+    nc.Flush()
+    rx_message_hex = base64.a85encode(nc.Stream, adobe=False)
+    rx_message_hex = rx_message_hex.decode('utf-8')
     fmu.setString([network_rx_ref], [rx_message_hex])
-    ncodecDLL.ncodec_free(stream)
+    nc.Truncate()
 
 
 def simulation_setup():
     # Setup FMU:
     global fmu
+    fmu_filename = r"fmu/example-network-fmi2.fmu"
     unzipdir = extract(r"fmu/example-network-fmi2.fmu")
     model_desc = read_model_description(fmu_filename)
     fmu = FMU2Slave(
@@ -97,13 +82,13 @@ def simulation_setup():
 
 def simulation_instantiate():
     global fmu
-    fmu.instantiate()
+    fmu.instantiate(loggingOn=True)
     fmu.setupExperiment(startTime=0.0, stopTime=4.0, tolerance=None)
     fmu.enterInitializationMode()
     fmu.exitInitializationMode()
 
     global nc
-    nc = ncodecDLL.ncodec_open_with_stream("application/x-automotive-bus; interface=stream; type=pdu; schema=fbs; swc_id=23; ecu_id=5")
+    nc = CodecFactory.create_codec("application/x-automotive-bus; interface=stream; type=pdu; schema=fbs; swc_id=1; ecu_id=7", bytearray(), "Test", 0.0)
 
 
 def simulation_terminate():
@@ -111,8 +96,8 @@ def simulation_terminate():
     fmu.terminate()
     fmu.freeInstance()
 
-    global nc
-    ncodecDLL.ncodec_close(nc)
+    # global nc
+    # ncodecDLL.ncodec_close(nc)
 
 
 # Run the simulation

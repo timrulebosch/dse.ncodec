@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ncodec"
+version = "0.0.1"
+description = "Python implementation of the dse.ncodec project."
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "../LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+keywords = ["ncodec", "codec", "bosch"]
+
+[project.optional-dependencies]
+test = ["pytest>=6.0","flatbuffers==1.12"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
