@@ -53,15 +53,14 @@ bool flexray_bus_model_consume(ABCodecBusModel* bm, NCodecPdu* pdu)
         // shift_cycle(&m->engine, 0, 0, true); // TODO: FR sync from bridge.
         break;
     case (NCodecPduFlexrayMetadataTypeLpdu):
-        log_debug("FlexRay: Consume: (%u:%u:%u) LPDU %04x (len=%u) status=%d",
+        log_debug("FlexRay: Consume: (%u:%u:%u) LPDU %04x index=%u, len=%u, "
+                  "status=%d",
             node_ident.node.ecu_id, node_ident.node.cc_id,
-            node_ident.node.swc_id, pdu->id, pdu->payload_len,
-            pdu->transport.flexray.metadata.lpdu.status);
-        // TODO: Need also the config index. Currently based on slot_id
-        // TODO: but needs to also have config_index, or actually use
-        // TODO: config_index for the lookup (rather than slot_id).
-        // TODO: *** NOT URGENT ***, Needed for CHA + B support.
-        set_payload(&m->engine, node_ident.node_id, pdu->id,
+            node_ident.node.swc_id, pdu->id,
+            pdu->transport.flexray.metadata.lpdu.frame_config_index,
+            pdu->payload_len, pdu->transport.flexray.metadata.lpdu.status);
+        set_lpdu(&m->engine, node_ident.node_id, pdu->id,
+            pdu->transport.flexray.metadata.lpdu.frame_config_index,
             pdu->transport.flexray.metadata.lpdu.status, pdu->payload,
             pdu->payload_len);
         break;
@@ -78,25 +77,38 @@ void flexray_bus_model_progress(ABCodecBusModel* bm)
     FlexrayBusModel*               m = (FlexrayBusModel*)bm->model;
     NCodecPduFlexrayNodeIdentifier node_ident = m->node_ident;
 
-    log_debug("FlexRay: Progress: Bus Condition");
     calculate_bus_condition(&m->state);
+    log_debug("FlexRay: Progress: Bus Condition=%s",
+        tcvr_state_string(m->state.bus_condition));
 
     if (m->state.bus_condition == NCodecPduFlexrayTransceiverStateFrameSync) {
-        log_debug("FlexRay: Progress: Calculate and Consume slots");
 // TODO: use simulation time from pdu.simulation_time
 #define SIM_STEP_SIZE 0.0005
         int rc = calculate_budget(&m->engine, SIM_STEP_SIZE);
+        log_debug("FlexRay: Progress: Calculate Budget: MT=%u, UT=%u",
+            m->engine.step_budget_mt, m->engine.step_budget_ut);
         if (rc == 0) {
+            log_debug("FlexRay: Progress: Pos (cycle=%u, slot=%u, mt=%u) "
+                      "Budget (mt=%u, ut=%u)",
+                m->engine.pos_cycle, m->engine.pos_slot, m->engine.pos_mt,
+                m->engine.step_budget_mt, m->engine.step_budget_ut);
             for (; consume_slot(&m->engine) == 0;) {
-                // log_error("SLOT %d", m->engine.pos_slot);
+                log_debug("FlexRay: Progress: Pos (cycle=%u, slot=%u, mt=%u) "
+                          "Budget (mt=%u, ut=%u)",
+                    m->engine.pos_cycle, m->engine.pos_slot, m->engine.pos_mt,
+                    m->engine.step_budget_mt, m->engine.step_budget_ut);
             }
         } else {
             log_error("Call to calculate_budget() returned %d", rc);
         }
     }
 
-    log_debug("FlexRay: Progress: Status");
     FlexrayNodeState ns = get_node_state(&m->state, node_ident);
+    log_debug("FlexRay: Progress: Status (%u:%u:%u): poc_state=%s(%u), "
+              "tcvr_state=%s(%u)",
+        node_ident.node.ecu_id, node_ident.node.cc_id, node_ident.node.swc_id,
+        poc_state_string(ns.poc_state), ns.poc_state,
+        tcvr_state_string(ns.tcvr_state), ns.tcvr_state);
     ncodec_write((NCODEC*)bm->nc,
         &(NCodecPdu){ .ecu_id = m->node_ident.node.ecu_id,
             .swc_id = m->node_ident.node.swc_id,
@@ -110,20 +122,28 @@ void flexray_bus_model_progress(ABCodecBusModel* bm)
                     .channel[0].tcvr_state = ns.tcvr_state,
                 } } });
 
-    log_debug("FlexRay: Progress: LPDUs");
+    log_debug("FlexRay: Progress: LPDU (%u:%u:%u): count=%u",
+        node_ident.node.ecu_id, node_ident.node.cc_id, node_ident.node.swc_id,
+        vector_len(&m->engine.txrx_list));
     for (size_t i = 0; i < vector_len(&m->engine.txrx_list); i++) {
         FlexrayLpdu* lpdu = NULL;
         vector_at(&m->engine.txrx_list, i, &lpdu);
+        const uint8_t* payload = NULL;
+        uint8_t        payload_len = 0;
+        if (lpdu->lpdu_config.direction == NCodecPduFlexrayDirectionRx) {
+            payload = lpdu->payload;
+            payload_len = lpdu->lpdu_config.payload_length;
+        }
         log_debug(
             "FlexRay: Progress: LPDU %04x (len=%u) frame_index=%u status=%u",
-            lpdu->lpdu_config.slot_id, lpdu->lpdu_config.payload_length,
+            lpdu->lpdu_config.slot_id, payload_len,
             lpdu->lpdu_config.index.frame_table, lpdu->lpdu_config.status);
         ncodec_write((NCODEC*)bm->nc,
             &(NCodecPdu){ .ecu_id = m->node_ident.node.ecu_id,
                 .swc_id = m->node_ident.node.swc_id,
                 .id = lpdu->lpdu_config.slot_id,
-                .payload_len = lpdu->lpdu_config.payload_length,
-                .payload = lpdu->payload,
+                .payload_len = payload_len,
+                .payload = payload,
                 .transport_type = NCodecPduTransportTypeFlexray,
                 .transport.flexray = { .node_ident = m->node_ident,
                     .metadata_type = NCodecPduFlexrayMetadataTypeLpdu,

@@ -326,7 +326,7 @@ static int AutomotiveBus_Stream_Pdu_FlexrayConfig_verify_table(flatcc_table_veri
     int ret;
     if ((ret = flatcc_verify_vector_field(td, 0, 0, 8, 4, INT64_C(536870911)) /* vcn */)) return ret;
     if ((ret = flatcc_verify_field(td, 1, 2, 2) /* macrotick_per_cycle */)) return ret;
-    if ((ret = flatcc_verify_field(td, 2, 2, 2) /* microtick_per_cycle */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* microtick_per_cycle */)) return ret;
     if ((ret = flatcc_verify_field(td, 3, 2, 2) /* network_idle_start */)) return ret;
     if ((ret = flatcc_verify_field(td, 4, 2, 2) /* static_slot_length */)) return ret;
     if ((ret = flatcc_verify_field(td, 5, 2, 2) /* static_slot_count */)) return ret;

@@ -251,7 +251,7 @@ static inline AutomotiveBus_Stream_Pdu_StructMetadata_ref_t AutomotiveBus_Stream
 __flatbuffers_build_table_prolog(flatbuffers_, AutomotiveBus_Stream_Pdu_StructMetadata, AutomotiveBus_Stream_Pdu_StructMetadata_identifier, AutomotiveBus_Stream_Pdu_StructMetadata_type_identifier)
 
 #define __AutomotiveBus_Stream_Pdu_FlexrayConfig_formal_args ,\
-  AutomotiveBus_Stream_Pdu_FlexrayNodeIdentifier_vec_ref_t v0, uint16_t v1, uint16_t v2, uint16_t v3,\
+  AutomotiveBus_Stream_Pdu_FlexrayNodeIdentifier_vec_ref_t v0, uint16_t v1, uint32_t v2, uint16_t v3,\
   uint16_t v4, uint16_t v5, uint8_t v6, uint16_t v7,\
   uint32_t v8, AutomotiveBus_Stream_Pdu_FlexrayBitrate_enum_t v9, AutomotiveBus_Stream_Pdu_FlexrayChannel_enum_t v10, flatbuffers_bool_t v11,\
   flatbuffers_bool_t v12, uint8_t v13, uint8_t v14, flatbuffers_bool_t v15,\
@@ -628,7 +628,7 @@ static AutomotiveBus_Stream_Pdu_StructMetadata_ref_t AutomotiveBus_Stream_Pdu_St
 
 __flatbuffers_build_vector_field(0, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_vcn, AutomotiveBus_Stream_Pdu_FlexrayNodeIdentifier, AutomotiveBus_Stream_Pdu_FlexrayNodeIdentifier_t, AutomotiveBus_Stream_Pdu_FlexrayConfig)
 __flatbuffers_build_scalar_field(1, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_macrotick_per_cycle, flatbuffers_uint16, uint16_t, 2, 2, UINT16_C(0), AutomotiveBus_Stream_Pdu_FlexrayConfig)
-__flatbuffers_build_scalar_field(2, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_microtick_per_cycle, flatbuffers_uint16, uint16_t, 2, 2, UINT16_C(0), AutomotiveBus_Stream_Pdu_FlexrayConfig)
+__flatbuffers_build_scalar_field(2, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_microtick_per_cycle, flatbuffers_uint32, uint32_t, 4, 4, UINT32_C(0), AutomotiveBus_Stream_Pdu_FlexrayConfig)
 __flatbuffers_build_scalar_field(3, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_network_idle_start, flatbuffers_uint16, uint16_t, 2, 2, UINT16_C(0), AutomotiveBus_Stream_Pdu_FlexrayConfig)
 __flatbuffers_build_scalar_field(4, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_length, flatbuffers_uint16, uint16_t, 2, 2, UINT16_C(0), AutomotiveBus_Stream_Pdu_FlexrayConfig)
 __flatbuffers_build_scalar_field(5, flatbuffers_, AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_count, flatbuffers_uint16, uint16_t, 2, 2, UINT16_C(0), AutomotiveBus_Stream_Pdu_FlexrayConfig)
@@ -652,12 +652,12 @@ static inline AutomotiveBus_Stream_Pdu_FlexrayConfig_ref_t AutomotiveBus_Stream_
 {
     if (AutomotiveBus_Stream_Pdu_FlexrayConfig_start(B)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_vcn_add(B, v0)
+        || AutomotiveBus_Stream_Pdu_FlexrayConfig_microtick_per_cycle_add(B, v2)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_payload_length_add(B, v8)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_key_slot_payload_add(B, v17)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_key_slot_lpdu_add(B, v18)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_frame_table_add(B, v19)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_macrotick_per_cycle_add(B, v1)
-        || AutomotiveBus_Stream_Pdu_FlexrayConfig_microtick_per_cycle_add(B, v2)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_network_idle_start_add(B, v3)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_length_add(B, v4)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_count_add(B, v5)
@@ -682,12 +682,12 @@ static AutomotiveBus_Stream_Pdu_FlexrayConfig_ref_t AutomotiveBus_Stream_Pdu_Fle
     __flatbuffers_memoize_begin(B, t);
     if (AutomotiveBus_Stream_Pdu_FlexrayConfig_start(B)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_vcn_pick(B, t)
+        || AutomotiveBus_Stream_Pdu_FlexrayConfig_microtick_per_cycle_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_payload_length_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_key_slot_payload_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_key_slot_lpdu_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_frame_table_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_macrotick_per_cycle_pick(B, t)
-        || AutomotiveBus_Stream_Pdu_FlexrayConfig_microtick_per_cycle_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_network_idle_start_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_length_pick(B, t)
         || AutomotiveBus_Stream_Pdu_FlexrayConfig_static_slot_count_pick(B, t)

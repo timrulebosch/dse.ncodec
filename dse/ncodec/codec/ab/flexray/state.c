@@ -27,8 +27,7 @@ Adjust POC Commands according to Bus Condition.
 
 */
 
-static void __poc_state_transition(
-    FlexrayNodeState* state, NCodecPduFlexrayPocState target)
+const char* poc_state_string(unsigned int state)
 {
     const char* _t[] = {
         [NCodecPduFlexrayPocStateDefaultConfig] = "DefaultConfig",
@@ -42,16 +41,26 @@ static void __poc_state_transition(
         [NCodecPduFlexrayPocStateFreeze] = "Freeze",
         [NCodecPduFlexrayPocStateUndefined] = "Undefined",
     };
-    if (target > ARRAY_SIZE(_t)) {
-        log_error("Invalid target POC State (%d)", _t[state->poc_state]);
+    if (state > ARRAY_SIZE(_t)) {
+        return NULL;
+    } else {
+        return _t[state];
+    }
+}
+
+static void __poc_state_transition(
+    FlexrayNodeState* state, NCodecPduFlexrayPocState target)
+{
+    if (poc_state_string(target) == NULL) {
+        log_error("Invalid target POC State (%d)", target);
         return;
     }
-    log_debug(
-        "POC State Transition %s -> %s", _t[state->poc_state], _t[target]);
+    log_debug("POC State Transition %s -> %s",
+        poc_state_string(state->poc_state), poc_state_string(target));
     state->poc_state = target;
 }
 
-static void __set_transceiver_state(FlexrayNodeState* state)
+const char* tcvr_state_string(unsigned int state)
 {
     const char* _t[] = {
         [NCodecPduFlexrayTransceiverStateNoPower] = "NoPower",
@@ -62,9 +71,18 @@ static void __set_transceiver_state(FlexrayNodeState* state)
         [NCodecPduFlexrayTransceiverStateFrameSync] = "FrameSync",
         [NCodecPduFlexrayTransceiverStateFrameError] = "FrameError",
     };
+    if (state > ARRAY_SIZE(_t)) {
+        return NULL;
+    } else {
+        return _t[state];
+    }
+}
+
+static void __set_transceiver_state(FlexrayNodeState* state)
+{
     if (state->tcvr_state == NCodecPduFlexrayTransceiverStateNoPower) {
         /* No Power, adjustment based on POC state not valid. */
-        log_debug("Tranceiver State: %s", _t[state->tcvr_state]);
+        log_debug("Tranceiver State: %s", tcvr_state_string(state->tcvr_state));
         return;
     }
 
@@ -101,11 +119,11 @@ static void __set_transceiver_state(FlexrayNodeState* state)
         break;
     }
 
-    if (state->tcvr_state > ARRAY_SIZE(_t)) {
+    if (tcvr_state_string(state->tcvr_state) == NULL) {
         log_error("Invalid Transceiver State (%d)", state->tcvr_state);
         return;
     }
-    log_debug("Tranceiver State: %s", _t[state->tcvr_state]);
+    log_debug("Transceiver State: %s", tcvr_state_string(state->tcvr_state));
 }
 
 void set_node_power(

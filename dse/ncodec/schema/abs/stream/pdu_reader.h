@@ -864,8 +864,8 @@ __flatbuffers_define_vector_field(0, AutomotiveBus_Stream_Pdu_FlexrayConfig, vcn
  *     
  *  Config: Macroticks per communication cycle (10..16000 MT). */
 __flatbuffers_define_scalar_field(1, AutomotiveBus_Stream_Pdu_FlexrayConfig, macrotick_per_cycle, flatbuffers_uint16, uint16_t, UINT16_C(0))
-/**  Config: Micorticks per communication cycle (640..640000 uT). */
-__flatbuffers_define_scalar_field(2, AutomotiveBus_Stream_Pdu_FlexrayConfig, microtick_per_cycle, flatbuffers_uint16, uint16_t, UINT16_C(0))
+/**  Config: Microticks per communication cycle (640..640000 uT). */
+__flatbuffers_define_scalar_field(2, AutomotiveBus_Stream_Pdu_FlexrayConfig, microtick_per_cycle, flatbuffers_uint32, uint32_t, UINT32_C(0))
 /**  Config: Start of network idle, marks start-of-end of communication cycle (7..15997 MT). */
 __flatbuffers_define_scalar_field(3, AutomotiveBus_Stream_Pdu_FlexrayConfig, network_idle_start, flatbuffers_uint16, uint16_t, UINT16_C(0))
 /**  Config: Length of a static slot (4..659 MT). */

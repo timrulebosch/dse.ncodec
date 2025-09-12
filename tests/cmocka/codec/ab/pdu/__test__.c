@@ -5,7 +5,7 @@
 #include <dse/testing.h>
 #include <dse/logger.h>
 
-uint8_t __log_level__ = LOG_DEBUG; /* LOG_QUIET LOG_INFO LOG_DEBUG LOG_TRACE */
+uint8_t __log_level__ = LOG_QUIET; /* LOG_QUIET LOG_INFO LOG_DEBUG LOG_TRACE */
 
 extern int run_pdu_tests(void);
 extern int run_pdu_can_tests(void);

@@ -42,6 +42,18 @@ char* trim(char* s)
     return s;
 }
 
+static void __free_item(void* item, void* data)
+{
+    UNUSED(data);
+    void** _item = item;
+    free(*_item);
+}
+
+void clear_free_list(ABCodecInstance* _nc)
+{
+    vector_clear(&_nc->free_list, __free_item, NULL);
+}
+
 
 void free_codec(ABCodecInstance* _nc)
 {
@@ -79,6 +91,9 @@ void free_codec(ABCodecInstance* _nc)
         }
         free(_nc->reader.bus_model.model);
     }
+
+    clear_free_list(_nc);
+    vector_reset(&_nc->free_list);
 }
 
 void create_bus_model(ABCodecInstance* nc)

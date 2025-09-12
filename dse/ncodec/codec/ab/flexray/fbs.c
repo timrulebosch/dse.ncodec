@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#include <dse/clib/collections/vector.h>
 #include <dse/ncodec/interface/pdu.h>
 #include <dse/ncodec/schema/abs/stream/pdu_builder.h>
 
@@ -15,7 +15,7 @@
 
 
 static void _decode_flexray_config(
-    ns(FlexrayMetadata_table_t) fr, NCodecPdu* _pdu)
+    ns(FlexrayMetadata_table_t) fr, NCodecPdu* _pdu, Vector* free_list)
 {
     NCodecPduFlexrayConfig* c = &_pdu->transport.flexray.metadata.config;
     _pdu->transport.flexray.metadata_type = NCodecPduFlexrayMetadataTypeConfig;
@@ -25,7 +25,8 @@ static void _decode_flexray_config(
 
     c->node_ident = _pdu->transport.flexray.node_ident;
 
-    c->vcn_count = ns(FlexrayLpduConfig_vec_len(ns(FlexrayConfig_vcn(fc_msg))));
+    c->vcn_count =
+        ns(FlexrayNodeIdentifier_vec_len(ns(FlexrayConfig_vcn(fc_msg))));
     // FIXME: decode this properly.
     c->vcn[0] = _pdu->transport.flexray.node_ident;
     c->vcn[1] = _pdu->transport.flexray.node_ident;
@@ -57,6 +58,10 @@ static void _decode_flexray_config(
     if (c->frame_config.count) {
         c->frame_config.table =
             calloc(c->frame_config.count, sizeof(NCodecPduFlexrayLpduConfig));
+        if (free_list->capacity == 0) {
+            *free_list = vector_make(sizeof(void*), 0, NULL);
+        }
+        vector_push(free_list, &c->frame_config.table);
         for (size_t i = 0; i < c->frame_config.count; i++) {
             NCodecPduFlexrayLpduConfig* lc = &c->frame_config.table[i];
             ns(FlexrayLpduConfig_table_t) lc_table =
@@ -120,7 +125,8 @@ static void _decode_flexray_lpdu(
 }
 
 
-void decode_flexray_metadata(ns(Pdu_table_t) pdu, NCodecPdu* _pdu)
+void decode_flexray_metadata(
+    ns(Pdu_table_t) pdu, NCodecPdu* _pdu, Vector* free_list)
 {
     NCodecPduFlexrayTransport* fr = &_pdu->transport.flexray;
     _pdu->transport_type = NCodecPduTransportTypeFlexray;
@@ -134,7 +140,7 @@ void decode_flexray_metadata(ns(Pdu_table_t) pdu, NCodecPdu* _pdu)
         ns(FlexrayMetadata_metadata_type(fr_msg));
     switch (metadata_type) {
     case ns(FlexrayMetadataType_Config):
-        _decode_flexray_config(fr_msg, _pdu);
+        _decode_flexray_config(fr_msg, _pdu, free_list);
         break;
     case ns(FlexrayMetadataType_Status):
         _decode_flexray_status(fr_msg, _pdu);

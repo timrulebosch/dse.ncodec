@@ -44,8 +44,6 @@ typedef struct FlexrayEngine {
     uint32_t minislot_count;
     uint32_t static_slot_payload_length;
 
-    // transmit_mode / channels_enable
-
     uint32_t macro2micro;
     uint32_t microtick_ns;
     uint32_t macrotick_ns;
@@ -60,13 +58,9 @@ typedef struct FlexrayEngine {
     uint32_t step_budget_mt;
     uint32_t bits_per_minislot;
 
-    struct {
-        NCodecPduFlexrayLpdu* table;
-        uint32_t              count;
-    } frame_config;
-
     Vector slot_map;
     Vector txrx_list;
+    Vector config_list; /* Storage for NCodecPduFlexrayLpduConfig tables. */
 } FlexrayEngine;
 
 
@@ -98,9 +92,9 @@ int  calculate_budget(FlexrayEngine* engine, double step_size);
 int  consume_slot(FlexrayEngine* engine);
 void release_config(FlexrayEngine* engine);
 int  shift_cycle(FlexrayEngine* engine, uint32_t mt, uint8_t cycle, bool force);
-int  set_payload(FlexrayEngine* engine, uint64_t node_id, uint32_t slot_id,
-     NCodecPduFlexrayLpduStatus status, const uint8_t* payload,
-     size_t payload_len);
+int  set_lpdu(FlexrayEngine* engine, uint64_t node_id, uint32_t slot_id,
+     uint32_t frame_config_index, NCodecPduFlexrayLpduStatus status,
+     const uint8_t* payload, size_t payload_len);
 
 int process_poc_command(
     FlexrayNodeState* state, NCodecPduFlexrayPocCommand command);
@@ -118,11 +112,14 @@ FlexrayNodeState get_node_state(
 void set_node_power(
     FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on);
 
+const char* tcvr_state_string(unsigned int state);
+const char* poc_state_string(unsigned int state);
 
 /* fbs.c */
 #undef ns
 #define ns(x) FLATBUFFERS_WRAP_NAMESPACE(AutomotiveBus_Stream_Pdu, x)
-void     decode_flexray_metadata(ns(Pdu_table_t) pdu, NCodecPdu* _pdu);
+void decode_flexray_metadata(
+    ns(Pdu_table_t) pdu, NCodecPdu* _pdu, Vector* free_list);
 uint32_t emit_flexray_metadata(flatcc_builder_t* B, NCodecPdu* _pdu);
 #undef ns
 

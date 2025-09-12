@@ -16,6 +16,7 @@ add_executable(test_codec_ab_pdu
     test_pdu_flexray_engine.c
     test_pdu_flexray_state.c
     test_pdu_flexray.c
+    flexray_harness.c
     ${DSE_NCODEC_SOURCE_DIR}/stream/buffer.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/codec.c
     ${DSE_NCODEC_SOURCE_DIR}/codec/ab/frame_fbs.c
@@ -34,6 +35,7 @@ target_include_directories(test_codec_ab_pdu
         ${DSE_NCODEC_INCLUDE_DIR}
         ${FLATCC_INCLUDE_DIR}
         ${DSE_CLIB_INCLUDE_DIR}
+        .
 )
 target_compile_definitions(test_codec_ab_pdu
     PUBLIC

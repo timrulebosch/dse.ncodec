@@ -18,6 +18,9 @@
 #define ns(x) FLATBUFFERS_WRAP_NAMESPACE(AutomotiveBus_Stream_Pdu, x)
 
 
+extern void clear_free_list(ABCodecInstance* _nc);
+
+
 static void initialize_stream(ABCodecInstance* nc)
 {
     if (nc->fbs_stream_initalized) return;
@@ -520,7 +523,7 @@ int32_t _reader_get_pdu(ABCodecReader* reader, NCodecPdu* pdu)
                 } else if (transport_type == ns(TransportMetadata_Struct)) {
                     _decode_struct_metadata(p, pdu);
                 } else if (transport_type == ns(TransportMetadata_Flexray)) {
-                    decode_flexray_metadata(p, pdu);
+                    decode_flexray_metadata(p, pdu, &nc->free_list);
                 }
             }
 
@@ -639,11 +642,7 @@ int32_t pdu_truncate(NCODEC* nc)
 
     reset_stream(_nc);
     _nc->c.stream->seek(nc, 0, NCODEC_SEEK_RESET);
-
-    // FIXME: reset the reader stream ? or do it in the special handling.
-
-
     _reader_reset(&_nc->reader);
-
+    clear_free_list(_nc);
     return 0;
 }

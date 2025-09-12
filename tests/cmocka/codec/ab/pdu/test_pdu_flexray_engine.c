@@ -798,8 +798,8 @@ void test_flexray__engine_txrx__frames(void** state)
 /* Set the TX Payload. */
 #define PAYLOAD "hello world"
         assert_int_equal(
-            0, set_payload(engine, config_0.node_ident.node_id,
-                   frame_table_0[0].slot_id, frame_table_0[0].status,
+            0, set_lpdu(engine, config_0.node_ident.node_id,
+                   frame_table_0[0].slot_id, 0, frame_table_0[0].status,
                    (uint8_t*)PAYLOAD, strlen(PAYLOAD)));
 
         /* Progress one sim step. */
