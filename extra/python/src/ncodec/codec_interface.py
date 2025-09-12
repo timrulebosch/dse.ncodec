@@ -45,12 +45,12 @@ class ICodec(ABC, Generic[MessageType]):
 class CodecFactory:
 
     @staticmethod
-    def create_pdu_codec(MimeMap: Dict[str, str], Stream: bytearray, ModelName: str, SimulationTime: float) -> ICodec:
+    def create_pdu_codec(MimeMap: str, Stream: bytearray, ModelName: str, SimulationTime: float) -> ICodec:
         from ncodec.pdu import PduCodec
         return PduCodec(MimeMap, Stream, ModelName, SimulationTime)
 
     @staticmethod
-    def create_can_codec(MimeMap: Dict[str, str], Stream: bytearray, ModelName: str, SimulationTime: float) -> ICodec:
+    def create_can_codec(MimeMap: str, Stream: bytearray, ModelName: str, SimulationTime: float) -> ICodec:
         from ncodec.can import CanCodec
         return CanCodec(MimeMap, Stream, ModelName, SimulationTime)
 

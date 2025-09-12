@@ -99,8 +99,17 @@ class PduMessage:
     ip_metadata: NCodecIpCanMessageMetadata = None
 
 class PduCodec(ICodec[PduMessage]):
-    def __init__(self, MimeMap: Dict[str, str], Stream: bytearray, ModelName: str, SimulationTime: float):
-        super().__init__(MimeMap, Stream, ModelName, SimulationTime)
+    def __init__(self, MimeMap: Dict[str, str] | str, Stream: bytearray, ModelName: str, SimulationTime: float):
+        # Accept MimeMap as dict, mime-type string, bytes, or None.
+        if isinstance(MimeMap, str):
+            # decode 'application/..; key=val' string into dict
+            MimeMap_ = decode_mime_type(MimeMap)
+        elif isinstance(MimeMap, Dict):
+            MimeMap_ = MimeMap
+        else:
+            raise ValueError("Invalid MimeMap type")
+
+        super().__init__(MimeMap_, Stream, ModelName, SimulationTime)
         self.builder = flatbuffers.Builder(1024)
         self.Pdus = []
 
@@ -220,8 +229,8 @@ class PduCodec(ICodec[PduMessage]):
             Pdu.AddSwcId(self.builder, swc_id)
             Pdu.AddEcuId(self.builder, ecu_id)
 
+            Pdu.AddTransportType(self.builder, msg.type)
             if transport is not None:
-                Pdu.AddTransportType(self.builder, msg.type)
                 Pdu.AddTransport(self.builder, transport)
 
             pdu = Pdu.End(self.builder)
@@ -242,10 +251,10 @@ class PduCodec(ICodec[PduMessage]):
 
     def Flush(self) -> None:
         buf = self.StreamFinalize()
-        self.builder = flatbuffers.Builder(1024)
         if not buf:
             return
-        self.Stream = buf
+        self.Stream = bytearray(buf)
+        self.builder = flatbuffers.Builder(1024)
 
     def decodeIpAddr(self, transport: IpMessageMetadata.IpMessageMetadata, ip_metadata: NCodecIpCanMessageMetadata):
         # Create a new table for the IP address

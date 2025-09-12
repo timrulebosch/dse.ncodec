@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 import ctypes
 from ncodec.codec_interface import ICodec
+from ncodec.mimetype import decode_mime_type
 from AutomotiveBus.Stream.Frame import (
     CanFrameType,
     CanFrame,
@@ -34,8 +35,17 @@ class CanMessage:
     Payload: bytes
 
 class CanCodec(ICodec[CanMessage]):
-    def __init__(self, MimeMap: Dict[str, str], Stream: bytearray, ModelName: str, SimulationTime: float):
-        super().__init__(MimeMap, Stream, ModelName, SimulationTime)
+    def __init__(self, MimeMap: Dict[str, str] | str, Stream: bytearray, ModelName: str, SimulationTime: float):
+        # Accept MimeMap as dict, mime-type string, bytes, or None.
+        if isinstance(MimeMap, str):
+            # decode 'application/..; key=val' string into dict
+            MimeMap_ = decode_mime_type(MimeMap)
+        elif isinstance(MimeMap, Dict):
+            MimeMap_ = MimeMap
+        else:
+            raise ValueError("Invalid MimeMap type")
+
+        super().__init__(MimeMap_, Stream, ModelName, SimulationTime)
         self.builder = flatbuffers.Builder(1024)
         self.Frames = []
 
