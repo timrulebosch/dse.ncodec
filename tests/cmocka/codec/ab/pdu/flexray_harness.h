@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#ifndef TESTS_CMOCKA_CODEC_AB_PDU_FLEXRAY_HARNESS_H_
+#define TESTS_CMOCKA_CODEC_AB_PDU_FLEXRAY_HARNESS_H_
+
 #include <stdint.h>
 #include <dse/clib/collections/vector.h>
 #include <dse/ncodec/codec.h>
@@ -71,3 +74,6 @@ typedef struct Mock {
 int  test_setup(void** state);
 int  test_teardown(void** state);
 void flexray_harness_run_test(TestTxRx* test);
+
+
+#endif  // TESTS_CMOCKA_CODEC_AB_PDU_FLEXRAY_HARNESS_H_
