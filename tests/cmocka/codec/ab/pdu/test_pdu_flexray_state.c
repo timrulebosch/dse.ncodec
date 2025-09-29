@@ -78,7 +78,7 @@ typedef struct {
     StateTransition                  transition[20];
 } StateSequence;
 
-void test_flexray__node_state_changes(void** _state)
+void node_state_changes(void** _state)
 {
     Mock*             mock = *_state;
     FlexrayNodeState* state = &mock->node_state;
@@ -238,7 +238,7 @@ typedef struct {
     } condition;
 } BusConditionTestCase;
 
-void test_flexray__bus_condition(void** _state)
+void bus_condition(void** _state)
 {
     Mock*         mock = *_state;
     FlexrayState* state = &mock->flexray_state;
@@ -334,6 +334,20 @@ void test_flexray__bus_condition(void** _state)
 }
 
 
+void bridge_node(void** state)
+{
+    Mock* mock = *state;
+    skip();
+
+
+    // Check nodeid of bridge ?? Similar to VCN
+    // check sync/nonsync
+
+    // similar to VCN ... constraints ?? frame table produced _after_ all nodes
+    // config, so on read actually.
+}
+
+
 int run_pdu_flexray_state_tests(void)
 {
     void* s = test_setup;
@@ -341,8 +355,9 @@ int run_pdu_flexray_state_tests(void)
 #define T cmocka_unit_test_setup_teardown
 
     const struct CMUnitTest tests[] = {
-        T(test_flexray__node_state_changes, s, t),
-        T(test_flexray__bus_condition, s, t),
+        T(node_state_changes, s, t),
+        T(bus_condition, s, t),
+        T(bridge_node, s, t),
     };
 
     return cmocka_run_group_tests_name("PDU  FLEXRAY STATE", tests, NULL, NULL);

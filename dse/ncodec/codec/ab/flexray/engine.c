@@ -56,6 +56,34 @@ int process_config(NCodecPdu* pdu, FlexrayEngine* engine)
             engine->log_id, config->bit_rate);
         return -EINVAL;
     }
+    if (config->bridge_mode != 0) {
+        /* Bridge Mode config is not processed. On subsequent read a generated
+        config + frame table is set to bridge node which evaluates/checks for
+        suitability with the bridged FlexRay bus. */
+        engine->config_changed = true;
+
+        NCodecPduFlexrayNodeIdentifier node_ident = engine->node_ident;
+        NCodecPduFlexrayNodeIdentifier cnode_ident = config->node_ident;
+        log_info("FlexRay%s: Engine: ==== Bridge Configuration for "
+                 "Node:(%d:%d:%d) ====",
+            engine->log_id, cnode_ident.node.ecu_id, cnode_ident.node.cc_id,
+            cnode_ident.node.swc_id);
+        log_info("FlexRay%s: Bridge: bridge_mode=%u", engine->log_id,
+            config->bridge_mode);
+        log_info(
+            "FlexRay%s: Bridge: bit_rate=%u", engine->log_id, config->bit_rate);
+        log_info("FlexRay%s: Bridge: channel_enable=%u", engine->log_id,
+            config->channel_enable);
+        return 0;
+    }
+    if (config->macrotick_per_cycle == 0) {
+        log_error("FlexRay%s: Config: no macrotick_per_cycle", engine->log_id);
+        return -EINVAL;
+    }
+    if (config->microtick_per_cycle == 0) {
+        log_error("FlexRay%s: Config: no microtick_per_cycle", engine->log_id);
+        return -EINVAL;
+    }
 
     int rc = 0;
     rc |= __merge_uint32(
@@ -81,6 +109,8 @@ int process_config(NCodecPdu* pdu, FlexrayEngine* engine)
     rc |=
         __merge_uint32(&engine->offset_network_mt, config->network_idle_start);
     if (rc != 0) return rc;
+
+    engine->config_changed = true;
 
     if (engine->pos_slot == 0) {
         /* Slot counts from 1... */
@@ -138,7 +168,12 @@ int process_config(NCodecPdu* pdu, FlexrayEngine* engine)
     }
     if (frame_config_table != NULL) {
         vector_push(&engine->config_list, &frame_config_table);
+        // FIXME: check or constrain
+        // config->frame_config.table[i].cycle_repetition ?? to a power of 2:
+        // 1,2,4,8...
     }
+
+    // TODO: configure pending_tx_list
 
     /* Additional options. */
     engine->inhibit_null_frames = config->inhibit_null_frames;
@@ -471,6 +506,47 @@ int consume_slot(FlexrayEngine* engine)
         }
     }
     return 0;
+}
+
+NCodecPduFlexrayLpduConfig* generate_bridge_node_frame_table(
+    FlexrayEngine* engine, size_t* count)
+{
+    if (engine == NULL) return NULL;
+    if (count == NULL) return NULL;
+
+    Vector frame_list =
+        vector_make(sizeof(NCodecPduFlexrayLpduConfig), 0, NULL);
+
+    for (size_t sm_i = 0; sm_i < vector_len(&engine->slot_map); sm_i++) {
+        VectorSlotMapItem* slot_map_item =
+            vector_at(&engine->slot_map, sm_i, NULL);
+        NCodecPduFlexrayLpduConfig* tx_lpdu = NULL;
+        NCodecPduFlexrayLpduConfig* rx_lpdu = NULL;
+        for (size_t i = 0; i < vector_len(&slot_map_item->lpdus); i++) {
+            FlexrayLpdu* lpdu_item = vector_at(&slot_map_item->lpdus, i, NULL);
+            if (lpdu_item->lpdu_config.direction ==
+                NCodecPduFlexrayDirectionTx) {
+                tx_lpdu = &lpdu_item->lpdu_config;
+            } else if (lpdu_item->lpdu_config.direction ==
+                       NCodecPduFlexrayDirectionRx) {
+                rx_lpdu = &lpdu_item->lpdu_config;
+            }
+        }
+        if (rx_lpdu != NULL && tx_lpdu == NULL) {
+            /* There is an RX LPDU which expects TX to come from the
+            bridged network (i.e. no TX LPDU in _this_ segment).*/
+            vector_push(&frame_list, rx_lpdu);
+        }
+    }
+    if (vector_len(&frame_list)) {
+        *count = vector_len(&frame_list);
+        /* Vector is flat, caller to free. */
+        return vector_at(&frame_list, 0, NULL);
+    } else {
+        *count = 0;
+        vector_reset(&frame_list);
+        return NULL;
+    }
 }
 
 static void __flexray_lpdu_destroy(void* item, void* data)

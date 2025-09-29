@@ -89,25 +89,50 @@ static int test_teardown(void** state)
 }
 
 
-void test_flexray__communication_parameters(void** state)
+static void check_nc_parameters(FlexrayEngine* engine)
 {
-    Mock*                       mock = *state;
-    NCodecPduFlexrayConfig      config = cc_config;
-    NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
-    config.frame_config.table = frame_table;
-    config.frame_config.count = ARRAY_SIZE(frame_config__empty);
+    assert_int_equal(0, engine->microtick_per_cycle);
+    assert_int_equal(0, engine->macrotick_per_cycle);
 
-    FlexrayEngine* engine = &mock->engine;
-    *engine = (FlexrayEngine){ .sim_step_size = SIM_STEP_SIZE };
+    assert_int_equal(0, engine->static_slot_length_mt);
+    assert_int_equal(0, engine->static_slot_count);
+    assert_int_equal(0, engine->minislot_length_mt);
+    assert_int_equal(0, engine->minislot_count);
+    assert_int_equal(0, engine->static_slot_payload_length);
 
-    NCodecPdu pdu = {
-        .transport_type = NCodecPduTransportTypeFlexray,
-        .transport.flexray.metadata_type = NCodecPduFlexrayMetadataTypeConfig,
-    };
+    assert_int_equal(0.0005, engine->sim_step_size);
+    assert_int_equal(0, engine->microtick_ns);
+    assert_int_equal(0, engine->macro2micro);
+    assert_int_equal(0, engine->macrotick_ns);
+    assert_int_equal(0, engine->step_budget_ut);
+    assert_int_equal(0, engine->step_budget_mt);
+    assert_int_equal(0, engine->offset_static_mt);
+    assert_int_equal(0, engine->offset_dynamic_mt);
+    assert_int_equal(0, engine->offset_network_mt);
+    assert_int_equal(0, engine->bits_per_minislot);
 
+    // Budget allocation.
+    uint8_t __log_save = __log_level__;
+    __log_level__ = LOG_FATAL;
+    assert_int_equal(-EINVAL, calculate_budget(engine, 0));
+    assert_int_equal(0, engine->step_budget_ut);
+    assert_int_equal(0, engine->step_budget_mt);
+    assert_int_equal(-EINVAL, calculate_budget(engine, SIM_STEP_SIZE));
+    assert_int_equal(0, engine->step_budget_ut);
+    assert_int_equal(0, engine->step_budget_mt);
+    __log_level__ = __log_save;
+
+    // Position
+    assert_int_equal(0, engine->pos_mt);
+    assert_int_equal(0, engine->pos_slot);
+    assert_int_equal(0, engine->pos_cycle);
+}
+
+static void check_calculated_parameters(FlexrayEngine* engine)
+{
     // Check calculated parameters.
-    pdu.transport.flexray.metadata.config = config;
-    assert_int_equal(0, process_config(&pdu, engine));
+    engine->step_budget_ut = 0;
+    engine->step_budget_mt = 0;
 
     assert_int_equal(200000, engine->microtick_per_cycle);
     assert_int_equal(3361, engine->macrotick_per_cycle);
@@ -142,6 +167,28 @@ void test_flexray__communication_parameters(void** state)
     assert_int_equal(0, engine->pos_mt);
     assert_int_equal(1, engine->pos_slot);
     assert_int_equal(0, engine->pos_cycle);
+}
+
+
+void communication_parameters(void** state)
+{
+    Mock*                       mock = *state;
+    NCodecPduFlexrayConfig      config = cc_config;
+    NCodecPduFlexrayLpduConfig* frame_table = frame_config__empty;
+    config.frame_config.table = frame_table;
+    config.frame_config.count = ARRAY_SIZE(frame_config__empty);
+
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ .sim_step_size = SIM_STEP_SIZE };
+
+    NCodecPdu pdu = {
+        .transport_type = NCodecPduTransportTypeFlexray,
+        .transport.flexray.metadata_type = NCodecPduFlexrayMetadataTypeConfig,
+    };
+
+    pdu.transport.flexray.metadata.config = config;
+    assert_int_equal(0, process_config(&pdu, engine));
+    check_calculated_parameters(engine);
 
 
     // TMerge Config.
@@ -162,7 +209,7 @@ typedef struct {
     uint32_t mt;
 } CycleCheck;
 
-void test_flexray__engine_cycle__empty_frame_config(void** state)
+void engine_cycle__empty_frame_config(void** state)
 {
     Mock*                       mock = *state;
     NCodecPduFlexrayConfig      config = cc_config;
@@ -212,7 +259,7 @@ void test_flexray__engine_cycle__empty_frame_config(void** state)
     assert_int_equal(1, engine->pos_cycle);
 }
 
-void test_flexray__engine_cycle__with_frame_config(void** state)
+void engine_cycle__with_frame_config(void** state)
 {
     Mock*                      mock = *state;
     NCodecPduFlexrayConfig     config = cc_config;
@@ -270,7 +317,7 @@ void test_flexray__engine_cycle__with_frame_config(void** state)
     assert_int_equal(1, engine->pos_cycle);
 }
 
-void test_flexray__engine_cycle__wrap(void** state)
+void engine_cycle__wrap(void** state)
 {
     Mock*                       mock = *state;
     NCodecPduFlexrayConfig      config = cc_config;
@@ -322,7 +369,7 @@ void test_flexray__engine_cycle__wrap(void** state)
     assert_int_equal(1, engine->pos_cycle);
 }
 
-void test_flexray__engine_cycle__shift(void** state)
+void engine_cycle__shift(void** state)
 {
     Mock*                       mock = *state;
     NCodecPduFlexrayConfig      config = cc_config;
@@ -421,7 +468,7 @@ typedef struct {
     } expect;
 } TxRxCheck;
 
-void test_flexray__engine_txrx__frames(void** state)
+void engine_txrx__frames(void** state)
 {
     Mock* mock = *state;
 
@@ -868,23 +915,197 @@ void test_flexray__engine_txrx__frames(void** state)
     }
 }
 
+
+#define MIMETYPE_BRIDGE_SYNC                                                   \
+    "application/x-automotive-bus; "                                           \
+    "interface=stream;type=pdu;schema=fbs;"                                    \
+    "ecu_id=2;bridge=sync;"
+#define MIMETYPE_BRIDGE_NONSYNC                                                \
+    "application/x-automotive-bus; "                                           \
+    "interface=stream;type=pdu;schema=fbs;"                                    \
+    "ecu_id=3;bridge=nonsync;"
+
+
+static NCodecPduFlexrayConfig cc_config_partial = {
+    .bit_rate = NCodecPduFlexrayBitrate10,
+    .channel_enable = NCodecPduFlexrayChannelA,
+    .coldstart_node = false,
+    .sync_node = false,
+    .coldstart_attempts = 8u,
+    .wakeup_channel_select = 0, /* Channel A */
+    .key_slot_id = 0u,
+};
+
+
+void engine_bridge__config(void** state)
+{
+    Mock*          mock = *state;
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ .sim_step_size = SIM_STEP_SIZE };
+
+    // Bridge Node first.
+    NCodecPduFlexrayConfig config_bridge = cc_config_partial;
+    config_bridge.bridge_mode = NCodecPduFlexrayBridgeModeSync;
+    assert_false(engine->config_changed);
+    assert_int_equal(
+        0, process_config(
+               &(NCodecPdu){
+                   .transport_type = NCodecPduTransportTypeFlexray,
+                   .transport.flexray.metadata_type =
+                       NCodecPduFlexrayMetadataTypeConfig,
+                   .transport.flexray.metadata.config = config_bridge,
+               },
+               engine));
+    check_nc_parameters(engine); /* Indicates no-configuration. */
+    assert_true(engine->config_changed);
+
+    // Merge in a normal node, engine config should be available.
+    engine->config_changed = false;
+    assert_false(engine->config_changed);
+    assert_int_equal(0, process_config(
+                            &(NCodecPdu){
+                                .transport_type = NCodecPduTransportTypeFlexray,
+                                .transport.flexray.metadata_type =
+                                    NCodecPduFlexrayMetadataTypeConfig,
+                                .transport.flexray.metadata.config = cc_config,
+                            },
+                            engine));
+    check_calculated_parameters(engine); /* Config now available. */
+    assert_true(engine->config_changed);
+}
+
+void engine_bridge__frames(void** state)
+{
+    Mock*          mock = *state;
+    FlexrayEngine* engine = &mock->engine;
+    *engine = (FlexrayEngine){ .sim_step_size = SIM_STEP_SIZE };
+    size_t                      count = 0;
+    NCodecPduFlexrayLpduConfig* lpdu_config = NULL;
+
+    // Check operation with no config.
+    lpdu_config = generate_bridge_node_frame_table(engine, &count);
+    assert_null(lpdu_config);
+    assert_int_equal(0, count);
+
+    // Node config with frames.
+    NCodecPduFlexrayConfig     config = cc_config;
+    NCodecPduFlexrayLpduConfig frame_table[] = {
+        /* 20 Should be sent by bridged network. */
+        { .slot_id = 20,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionRx,
+            .status = NCodecPduFlexrayLpduStatusNotReceived,
+            .base_cycle = 4,
+            .cycle_repetition = 2 },
+        /* 24 Send by this network, not expected from bridged network. */
+        { .slot_id = 24,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionTx,
+            .status = NCodecPduFlexrayLpduStatusNotTransmitted,
+            .base_cycle = 4,
+            .cycle_repetition = 2 },
+        { .slot_id = 24,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionRx,
+            .status = NCodecPduFlexrayLpduStatusNotReceived,
+            .base_cycle = 4,
+            .cycle_repetition = 2 },
+        /* 28 Sent by this network, not expected from bridged network. */
+        { .slot_id = 28,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionTx,
+            .status = NCodecPduFlexrayLpduStatusNotTransmitted,
+            .base_cycle = 4,
+            .cycle_repetition = 2 },
+        /* 150 Should be sent by bridged network. */
+        {
+            .slot_id = 150,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionRx,
+            .status = NCodecPduFlexrayLpduStatusNotReceived,
+        },
+        /* 155 Send by this network, not expected from bridged network. */
+        { .slot_id = 155,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionTx,
+            .status = NCodecPduFlexrayLpduStatusNotTransmitted,
+            .base_cycle = 4,
+            .cycle_repetition = 2 },
+        { .slot_id = 155,
+            .payload_length = 64,
+            .direction = NCodecPduFlexrayDirectionRx,
+            .status = NCodecPduFlexrayLpduStatusNotReceived,
+            .base_cycle = 4,
+            .cycle_repetition = 2 },
+
+    };
+    config.frame_config.table = frame_table;
+    config.frame_config.count = ARRAY_SIZE(frame_table);
+    assert_false(engine->config_changed);
+    assert_int_equal(0, process_config(
+                            &(NCodecPdu){
+                                .transport_type = NCodecPduTransportTypeFlexray,
+                                .transport.flexray.metadata_type =
+                                    NCodecPduFlexrayMetadataTypeConfig,
+                                .transport.flexray.metadata.config = config,
+                            },
+                            engine));
+    check_calculated_parameters(engine); /* Config now available. */
+    assert_true(engine->config_changed);
+
+    // Bridge Node config.
+    NCodecPduFlexrayConfig config_bridge = cc_config_partial;
+    config_bridge.bridge_mode = NCodecPduFlexrayBridgeModeSync;
+    assert_true(engine->config_changed);
+    assert_int_equal(
+        0, process_config(
+               &(NCodecPdu){
+                   .transport_type = NCodecPduTransportTypeFlexray,
+                   .transport.flexray.metadata_type =
+                       NCodecPduFlexrayMetadataTypeConfig,
+                   .transport.flexray.metadata.config = config_bridge,
+               },
+               engine));
+    check_calculated_parameters(engine); /* Config still available. */
+
+
+    // Generate the Bridge Node frame table.
+    count = 0;
+    lpdu_config = NULL;
+    lpdu_config = generate_bridge_node_frame_table(engine, &count);
+    assert_non_null(lpdu_config);
+    assert_int_equal(2, count);
+
+    assert_int_equal(20, lpdu_config[0].slot_id);
+    assert_int_equal(64, lpdu_config[0].payload_length);
+    assert_int_equal(NCodecPduFlexrayDirectionRx, lpdu_config[0].direction);
+    assert_int_equal(4, lpdu_config[0].base_cycle);
+    assert_int_equal(2, lpdu_config[0].cycle_repetition);
+    assert_int_equal(150, lpdu_config[1].slot_id);
+    assert_int_equal(64, lpdu_config[1].payload_length);
+    assert_int_equal(NCodecPduFlexrayDirectionRx, lpdu_config[1].direction);
+    assert_int_equal(0, lpdu_config[1].base_cycle);
+    assert_int_equal(0, lpdu_config[1].cycle_repetition);
+
+    free(lpdu_config);
+}
+
+
 int run_pdu_flexray_engine_tests(void)
 {
     void* s = test_setup;
     void* t = test_teardown;
 
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test_setup_teardown(
-            test_flexray__communication_parameters, s, t),
-        cmocka_unit_test_setup_teardown(
-            test_flexray__engine_cycle__empty_frame_config, s, t),
-        cmocka_unit_test_setup_teardown(
-            test_flexray__engine_cycle__with_frame_config, s, t),
-        cmocka_unit_test_setup_teardown(test_flexray__engine_cycle__wrap, s, t),
-        cmocka_unit_test_setup_teardown(
-            test_flexray__engine_cycle__shift, s, t),
-        cmocka_unit_test_setup_teardown(
-            test_flexray__engine_txrx__frames, s, t),
+        cmocka_unit_test_setup_teardown(communication_parameters, s, t),
+        cmocka_unit_test_setup_teardown(engine_cycle__empty_frame_config, s, t),
+        cmocka_unit_test_setup_teardown(engine_cycle__with_frame_config, s, t),
+        cmocka_unit_test_setup_teardown(engine_cycle__wrap, s, t),
+        cmocka_unit_test_setup_teardown(engine_cycle__shift, s, t),
+        cmocka_unit_test_setup_teardown(engine_txrx__frames, s, t),
+
+        cmocka_unit_test_setup_teardown(engine_bridge__config, s, t),
+        cmocka_unit_test_setup_teardown(engine_bridge__frames, s, t),
     };
 
     return cmocka_run_group_tests_name("PDU FLEXRAY ENGINE", tests, NULL, NULL);

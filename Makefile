@@ -11,7 +11,7 @@ DSE_CLANG_FORMAT_IMAGE ?= ghcr.io/boschglobal/dse-clang-format:main
 ###############
 ## External Projects.
 ABS_REPO ?= https://github.com/boschglobal/automotive-bus-schema
-ABS_VERSION ?= 1.0.14
+ABS_VERSION ?= 1.0.15
 export ABS_URL ?= $(ABS_REPO)/releases/download/v$(ABS_VERSION)/automotive-bus-schema.tar.gz
 
 DSE_CLIB_REPO ?= https://github.com/boschglobal/dse.clib
@@ -30,8 +30,6 @@ export PACKAGE_ARCH_LIST ?= $(PACKAGE_ARCH)
 export CMAKE_TOOLCHAIN_FILE ?= $(shell pwd -P)/extra/cmake/$(PACKAGE_ARCH).cmake
 export SRC_DIR = $(NAMESPACE)/$(MODULE)
 SUBDIRS = extra/external $(NAMESPACE)/$(MODULE)
-# SUBDIRS = $(NAMESPACE)/$(MODULE)
-# SUBDIRS = extra/external $(SRC_DIR)/examples
 
 
 ###############

@@ -144,6 +144,41 @@ void vcn_2_poc_set_normalactive(void** state)
 }
 
 
+void bridge__nc(void** state)
+{
+    Mock* mock = *state;
+    skip();
+
+    // 0VCN (set normalactive), 1VCN, 2VCN
+}
+void bridge__config_ready(void** state)
+{
+    Mock* mock = *state;
+    skip();
+
+    // 0VCN (set normalactive), 1VCN, 2VCN
+}
+void bridge__normalactive(void** state)
+{
+    Mock* mock = *state;
+    skip();
+
+    // 0VCN (set normalactive), 1VCN, 2VCN
+}
+void bridge__normalpassive(void** state)
+{
+    Mock* mock = *state;
+    skip();
+
+    // 0VCN (set normalactive), 1VCN, 2VCN
+}
+void bridge__config_update(void** state)
+{
+    Mock* mock = *state;
+    skip();
+}
+
+
 int run_pdu_flexray_startup_tests(void)
 {
     void* s = test_setup;
@@ -153,6 +188,12 @@ int run_pdu_flexray_startup_tests(void)
     const struct CMUnitTest tests[] = {
         T(vcn_2_normalactive, s, t),
         T(vcn_2_poc_set_normalactive, s, t),
+
+        T(bridge__nc, s, t),
+        T(bridge__config_ready, s, t),
+        T(bridge__normalactive, s, t),
+        T(bridge__normalpassive, s, t),
+        T(bridge__config_update, s, t),
     };
 
     return cmocka_run_group_tests_name(

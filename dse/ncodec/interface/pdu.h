@@ -158,6 +158,12 @@ typedef struct NCodecPduFlexrayNodeIdentifier {
     };
 } NCodecPduFlexrayNodeIdentifier;
 
+typedef enum NCodecPduFlexrayBridgeMode {
+    NCodecPduFlexrayBridgeModeNone = 0,
+    NCodecPduFlexrayBridgeModeSync = 1,
+    NCodecPduFlexrayBridgeModeNonSync = 2,
+} NCodecPduFlexrayBridgeMode;
+
 typedef enum {
     NCodecPduFlexrayBitrateNone = 0, /* No Config. */
     NCodecPduFlexrayBitrate10 = 1,
@@ -313,6 +319,7 @@ typedef struct NCodecPduFlexrayConfig {
     NCodecPduFlexrayPocState       initial_poc_state_cha;
     NCodecPduFlexrayPocState       initial_poc_state_chb;
     bool                           inhibit_null_frames;
+    NCodecPduFlexrayBridgeMode     bridge_mode;
 
     /* Config update operation. */
     NCodecPduFlexrayConfigOp operation;

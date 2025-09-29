@@ -173,6 +173,7 @@ __MIME type__:  `application/x-automotive-bus; interface=stream;`
 | <var>vcn</var>          | <code>uint8_t</code> | 0,1,2                  |  - | &check; | - | - | - |
 | <var>poca</var>         | <code>uint8_t</code> | 1..9[^poc]             |  - | &check; | - | - | - |
 | <var>pocb</var>         | <code>uint8_t</code> | 1..9[^poc]             |  - | &check; | - | - | - |
+| <var>bridge</var>        | <code>string</code> | `sync\|nonsync`        |  - | &check; | - | - | - |
 
 
 > [!NOTE]

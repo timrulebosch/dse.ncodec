@@ -506,6 +506,25 @@ C ignores all frames
 */
 
 
+void multi_node__bridge__sync(void** state)
+{
+    Mock* mock = *state;
+    skip();
+}
+
+void multi_node__bridge__nonsync(void** state)
+{
+    Mock* mock = *state;
+    skip();
+}
+
+void multi_node__bridge__push_cycle_macrotick(void** state)
+{
+    Mock* mock = *state;
+    skip();
+}
+
+
 int run_pdu_flexray_multi_node_tests(void)
 {
     void* s = test_setup;
@@ -516,8 +535,10 @@ int run_pdu_flexray_multi_node_tests(void)
         T(multi_node__mixed__2vcn, s, t),
         // T(multi_node__2vcn, s, t),
         // T(multi_node__active, s, t),
-        // T(multi_node__bridge, s, t),
         // T(multi_node__WUP, s, t),
+        T(multi_node__bridge__sync, s, t),
+        T(multi_node__bridge__nonsync, s, t),
+        T(multi_node__bridge__push_cycle_macrotick, s, t),
     };
 
     return cmocka_run_group_tests_name(

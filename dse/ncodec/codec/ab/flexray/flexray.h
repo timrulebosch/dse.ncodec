@@ -20,6 +20,8 @@ typedef struct FlexrayNodeState {
     /* Per Node/NCodec instance. */
     NCodecPduFlexrayPocState         poc_state;
     NCodecPduFlexrayTransceiverState tcvr_state;
+
+    // FIXME: NCodecPduFlexrayBridgeMode how to trigger sync for a bridge node.
 } FlexrayNodeState;
 
 
@@ -29,13 +31,19 @@ typedef struct FlexrayState {
 
     /* The resultant bus_condition. */
     NCodecPduFlexrayTransceiverState bus_condition;
+
+    // FIXME: NCodecPduFlexrayBridgeMode how to trigger sync for a bridge node.
 } FlexrayState;
 
 
 typedef struct FlexrayEngine {
     NCodecPduFlexrayNodeIdentifier node_ident;
-    bool                           inhibit_null_frames;
 
+    // FIXME: NCodecPduFlexrayBridgeMode how to trigger txrx_list processing for
+    // a bridge node.
+
+    bool   inhibit_null_frames;
+    bool   config_changed; /* When set, config push to bridge nodes. */
     double sim_step_size;
 
     uint32_t microtick_per_cycle;
@@ -63,7 +71,8 @@ typedef struct FlexrayEngine {
 
     Vector slot_map;
     Vector txrx_list;
-    Vector config_list; /* Storage for NCodecPduFlexrayLpduConfig tables. */
+    Vector config_list;     /* Storage for NCodecPduFlexrayLpduConfig tables. */
+    Vector pending_tx_list; /* Push to bridge node pending Tx list. */
 
     const char* log_id;
 } FlexrayEngine;
@@ -124,6 +133,9 @@ void set_node_power(
     FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid, bool power_on);
 void set_poc_state(FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid,
     NCodecPduFlexrayPocState poc_state);
+
+NCodecPduFlexrayLpduConfig* generate_bridge_node_frame_table(
+    FlexrayEngine* engine, size_t* count);
 
 const char* tcvr_state_string(unsigned int state);
 const char* poc_state_string(unsigned int state);
