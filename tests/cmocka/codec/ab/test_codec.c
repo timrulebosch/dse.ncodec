@@ -220,6 +220,10 @@ void test_codec_config(void** state)
             .int_value = 2,
             .offset_value = offsetof(ABCodecInstance, poc_state_chb_str),
             .offset_int_value = offsetof(ABCodecInstance, poc_state_chb) },
+        { .name = "bridge",
+            .value = "sync",
+            .offset_value = offsetof(ABCodecInstance, bridge_mode),
+            .offset_int_value = 0 },
         /* Bad integer values. */
         { .name = "bus_id",
             .value = "seven",
@@ -296,6 +300,7 @@ void test_codec_stat(void** state)
         { .index = 12, .name = "vcn", .value = "7" },
         { .index = 13, .name = "poca", .value = "4" },
         { .index = 14, .name = "pocb", .value = "2" },
+        { .index = 15, .name = "bridge", .value = "sync" },
         { .index = -1, .name = "foo", .value = "bar" },
     };
 

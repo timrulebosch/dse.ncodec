@@ -223,10 +223,16 @@ void node_state_changes(void** _state)
 
 typedef struct {
     const char*                    name;
+    size_t                         vcs_node_count;
     NCodecPduFlexrayNodeIdentifier vcs_n1;
     NCodecPduFlexrayNodeIdentifier vcs_n2;
     NCodecPduFlexrayNodeIdentifier node;
-    size_t                         vcs_node_count;
+    struct {
+        NCodecPduFlexrayNodeIdentifier   node;
+        NCodecPduFlexrayBridgeMode       bridge_mode;
+        NCodecPduFlexrayTransceiverState tcvr_state;
+        NCodecPduFlexrayPocState         poc_state;
+    } bridge;
     struct {
         NCodecPduFlexrayTransceiverState initial_bus_condition;
         NCodecPduFlexrayTransceiverState pre_power;
@@ -237,6 +243,50 @@ typedef struct {
         NCodecPduFlexrayPocState         post_normal_active_poc_state;
     } condition;
 } BusConditionTestCase;
+
+static void _testcase_bus_condition(
+    BusConditionTestCase* check, FlexrayState* state)
+{
+    *state = (FlexrayState){ 0 };
+    if (check->vcs_n1.node_id) register_vcn_node_state(state, check->vcs_n1);
+    if (check->vcs_n2.node_id) register_vcn_node_state(state, check->vcs_n2);
+    register_node_state(state, check->node, false, true);
+    if (check->bridge.node.node_id) {
+        register_bridge_node_state(state, check->bridge.node,
+            check->bridge.bridge_mode, check->bridge.poc_state,
+            check->bridge.tcvr_state);
+    }
+    assert_int_equal(check->vcs_node_count, vector_len(&state->vcs_node));
+    assert_int_equal(
+        check->bridge.node.node_id ? 2 : 1, vector_len(&state->node_state));
+
+    /* Add a node and push to Config state. */
+    calculate_bus_condition(state);
+    assert_int_equal(
+        check->condition.initial_bus_condition, state->bus_condition);
+
+    /* Power-On the transceiver. */
+    assert_int_equal(check->condition.pre_power,
+        get_node_state(state, check->node).tcvr_state);
+    set_node_power(state, check->node, true);
+    assert_int_equal(check->condition.post_power,
+        get_node_state(state, check->node).tcvr_state);
+
+    /* Push Node to Normal Active. */
+    push_node_state(state, check->node, NCodecPduFlexrayCommandConfig, 0, 0);
+    push_node_state(state, check->node, NCodecPduFlexrayCommandReady, 0, 0);
+    push_node_state(state, check->node, NCodecPduFlexrayCommandRun, 0, 0);
+    assert_int_equal(check->condition.pre_normal_active,
+        get_node_state(state, check->node).tcvr_state);
+    calculate_bus_condition(state);
+    assert_int_equal(check->condition.post_normal_active,
+        get_node_state(state, check->node).tcvr_state);
+    assert_int_equal(check->condition.post_normal_active_bus_condition,
+        state->bus_condition);
+    assert_int_equal(check->condition.post_normal_active_poc_state,
+        get_node_state(state, check->node).poc_state);
+    release_state(state);
+}
 
 void bus_condition(void** _state)
 {
@@ -294,57 +344,244 @@ void bus_condition(void** _state)
     };
     for (size_t i = 0; i < ARRAY_SIZE(checks); i++) {
         log_info("Check %u: %s", i, checks[i].name);
-        *state = (FlexrayState){ 0 };
-        if (checks[i].vcs_n1.node_id)
-            register_vcn_node_state(state, checks[i].vcs_n1);
-        if (checks[i].vcs_n2.node_id)
-            register_vcn_node_state(state, checks[i].vcs_n2);
-        register_node_state(state, checks[i].node, false, true);
-        assert_int_equal(
-            checks[i].vcs_node_count, vector_len(&state->vcs_node));
-        assert_int_equal(1, vector_len(&state->node_state));
-
-        /* Add a node and push to Config state. */
-        calculate_bus_condition(state);
-        assert_int_equal(
-            checks[i].condition.initial_bus_condition, state->bus_condition);
-
-        /* Power-On the transceiver. */
-        assert_int_equal(checks[i].condition.pre_power,
-            get_node_state(state, checks[i].node).tcvr_state);
-        set_node_power(state, checks[i].node, true);
-        assert_int_equal(checks[i].condition.post_power,
-            get_node_state(state, checks[i].node).tcvr_state);
-
-        /* Push Node to Normal Active. */
-        push_node_state(state, checks[i].node, NCodecPduFlexrayCommandConfig);
-        push_node_state(state, checks[i].node, NCodecPduFlexrayCommandReady);
-        push_node_state(state, checks[i].node, NCodecPduFlexrayCommandRun);
-        assert_int_equal(checks[i].condition.pre_normal_active,
-            get_node_state(state, checks[i].node).tcvr_state);
-        calculate_bus_condition(state);
-        assert_int_equal(checks[i].condition.post_normal_active,
-            get_node_state(state, checks[i].node).tcvr_state);
-        assert_int_equal(checks[i].condition.post_normal_active_bus_condition,
-            state->bus_condition);
-        assert_int_equal(checks[i].condition.post_normal_active_poc_state,
-            get_node_state(state, checks[i].node).poc_state);
-        release_state(state);
+        _testcase_bus_condition(&checks[i], state);
     }
 }
 
 
-void bridge_node(void** state)
+void bridge_node(void** _state)
 {
-    Mock* mock = *state;
-    skip();
-
-
-    // Check nodeid of bridge ?? Similar to VCN
-    // check sync/nonsync
-
-    // similar to VCN ... constraints ?? frame table produced _after_ all nodes
-    // config, so on read actually.
+    Mock*         mock = *_state;
+    FlexrayState* state = &mock->flexray_state;
+    BusConditionTestCase checks[] = {
+        /* Sync Bridge Node - state is pulled from bride, not modified. Leads. */
+        {
+            .name = "Sync Bridge NormalActive - Zero VCS Nodes",
+            .vcs_n1 = {.node = {0}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+            },
+            .vcs_node_count = 0,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalActive,
+            }
+        },
+        {
+            .name = "Sync Bridge NormalActive - One VCS Nodes",
+            .vcs_n1 = {.node = {.ecu_id = 1, .swc_id = 1}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+            },
+            .vcs_node_count = 1,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalActive,
+            }
+        },
+        {
+            .name = "Sync Bridge NormalActive - Two VCS Nodes",
+            .vcs_n1 = {.node = {.ecu_id = 1, .swc_id = 1}},
+            .vcs_n2 = {.node = {.ecu_id = 1, .swc_id = 2}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+            },
+            .vcs_node_count = 2,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalActive,
+            }
+        },
+        {
+            .name = "Sync Bridge NoSignal - Zero VCS Nodes",
+            .vcs_n1 = {.node = {0}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateNoSignal,
+                .poc_state = NCodecPduFlexrayPocStateReady,
+            },
+            .vcs_node_count = 0,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateNoSignal,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            }
+        },
+        {
+            /* TODO: support coldstart over bridge */
+            .name = "Sync Bridge FrameError - Zero VCS Nodes",
+            .vcs_n1 = {.node = {0}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
+                .poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            },
+            .vcs_node_count = 0,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateNoSignal,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            }
+        },
+        /* NonSync Bridge Node - state is pushed to bridge. Follows.*/
+        {
+            .name = "NonSync Bridge NoSignal - Zero VCS Nodes",
+            .vcs_n1 = {.node = {0}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeNonSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateNoSignal,
+                .poc_state = NCodecPduFlexrayPocStateReady,
+            },
+            .vcs_node_count = 0,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateNoSignal,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            }
+        },
+        {
+            .name = "NonSync Bridge FrameError - Zero VCS Nodes",
+            .vcs_n1 = {.node = {0}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeNonSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
+                .poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            },
+            .vcs_node_count = 0,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateNoSignal,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            }
+        },
+        {
+            .name = "NonSync Bridge NormalActive - Zero VCS Nodes",
+            .vcs_n1 = {.node = {0}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeNonSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+            },
+            .vcs_node_count = 0,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateFrameError,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameError,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalPassive,
+            }
+        },
+        {
+            .name = "NonSync Bridge NormalActive - One VCS Nodes",
+            .vcs_n1 = {.node = {.ecu_id = 1, .swc_id = 1}},
+            .vcs_n2 = {.node = {0}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeNonSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+            },
+            .vcs_node_count = 1,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalActive,
+            }
+        },
+        {
+            .name = "NonSync Bridge NormalActive - Two VCS Nodes",
+            .vcs_n1 = {.node = {.ecu_id = 1, .swc_id = 1}},
+            .vcs_n2 = {.node = {.ecu_id = 1, .swc_id = 2}},
+            .node = {.node = {.ecu_id = 1}},
+            .bridge = {
+                .node = {.node ={.ecu_id = 2}},
+                .bridge_mode = NCodecPduFlexrayBridgeModeNonSync,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+            },
+            .vcs_node_count = 2,
+            .condition = {
+                .initial_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .pre_power = NCodecPduFlexrayTransceiverStateNoPower,
+                .post_power = NCodecPduFlexrayTransceiverStateNoConnection,
+                .pre_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_bus_condition = NCodecPduFlexrayTransceiverStateFrameSync,
+                .post_normal_active_poc_state = NCodecPduFlexrayPocStateNormalActive,
+            }
+        },
+    };
+    for (size_t i = 0; i < ARRAY_SIZE(checks); i++) {
+        log_info("Check %u: %s", i, checks[i].name);
+        _testcase_bus_condition(&checks[i], state);
+    }
 }
 
 

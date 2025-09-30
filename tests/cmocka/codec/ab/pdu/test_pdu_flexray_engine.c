@@ -1037,7 +1037,6 @@ void engine_bridge__frames(void** state)
             .status = NCodecPduFlexrayLpduStatusNotReceived,
             .base_cycle = 4,
             .cycle_repetition = 2 },
-
     };
     config.frame_config.table = frame_table;
     config.frame_config.count = ARRAY_SIZE(frame_table);

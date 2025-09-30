@@ -39,7 +39,16 @@ bool flexray_bus_model_consume(ABCodecBusModel* bm, NCodecPdu* pdu)
             register_vcn_node_state(
                 &m->state, pdu->transport.flexray.metadata.config.vcn[i]);
         }
-        register_node_state(&m->state, node_ident, true, false);
+        if (pdu->transport.flexray.metadata.config.bridge_mode) {
+            /* Put the bridge in an inhert condition. This will be
+            changed by subsequent Status messages. */
+            register_bridge_node_state(&m->state, node_ident,
+                pdu->transport.flexray.metadata.config.bridge_mode,
+                NCodecPduFlexrayPocStateConfig,
+                NCodecPduFlexrayTransceiverStateNoConnection);
+        } else {
+            register_node_state(&m->state, node_ident, true, false);
+        }
         // TODO: map correct power state.
         set_poc_state(&m->state, node_ident,
             pdu->transport.flexray.metadata.config.initial_poc_state_cha);
@@ -49,12 +58,17 @@ bool flexray_bus_model_consume(ABCodecBusModel* bm, NCodecPdu* pdu)
             node_ident.node.ecu_id, node_ident.node.cc_id,
             node_ident.node.swc_id);
         // TODO: state needs to be an array for CHA CHB
+
         push_node_state(&m->state, node_ident,
-            pdu->transport.flexray.metadata.status.channel[0].poc_command);
+            pdu->transport.flexray.metadata.status.channel[0].poc_command,
+            pdu->transport.flexray.metadata.status.channel[0].poc_state,
+            pdu->transport.flexray.metadata.status.channel[0].tcvr_state);
 
         // TODO: set the node power, does this need a specific command in the
         // Status message? set_node_power(state, checks[i].node, true);
-        // shift_cycle(&m->engine, 0, 0, true); // TODO: FR sync from bridge.
+        // shift_cycle(&m->engine, 0, 0, true);
+
+        // TODO: FR sync cycle/ma from bridge.
         break;
     case (NCodecPduFlexrayMetadataTypeLpdu):
         log_info("FlexRay%s: Consume: (%u:%u:%u) LPDU %04x index=%u, len=%u, "

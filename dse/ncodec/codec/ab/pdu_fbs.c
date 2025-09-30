@@ -219,9 +219,9 @@ int32_t pdu_write(NCODEC* nc, NCodecPdu* pdu)
     if (_pdu == NULL) return -EINVAL;
     if (_nc->c.stream == NULL) return -ENOSR;
 
-    uint32_t swc_id = _pdu->swc_id ? _pdu->swc_id : _nc->swc_id;
     uint32_t ecu_id = _pdu->ecu_id ? _pdu->ecu_id : _nc->ecu_id;
     uint32_t cc_id = _nc->cc_id;
+    uint32_t swc_id = _pdu->swc_id ? _pdu->swc_id : _nc->swc_id;
 
     flatcc_builder_t* B = &_nc->fbs_builder;
     initialize_stream(_nc);
@@ -258,6 +258,17 @@ int32_t pdu_write(NCODEC* nc, NCodecPdu* pdu)
                 _nc->poc_state_cha;
             _pdu->transport.flexray.metadata.config.initial_poc_state_chb =
                 _nc->poc_state_chb;
+            /* Bridge mode for this node. */
+            NCodecPduFlexrayBridgeMode bm = NCodecPduFlexrayBridgeModeNone;
+            if (_nc->bridge_mode != NULL) {
+                if (strcmp(_nc->bridge_mode, "sync") == 0) {
+                    bm = NCodecPduFlexrayBridgeModeSync;
+                } else if (strcmp(_nc->bridge_mode, "nonsync") == 0) {
+                    bm = NCodecPduFlexrayBridgeModeNonSync;
+                }
+            }
+            _pdu->transport.flexray.metadata.config.bridge_mode = bm;
+
             // TODO: refine this, probably need to change the mimetype
             // TODO: to something like vcn1=42 vcn2=24
             _pdu->transport.flexray.metadata.config.vcn[0].node.swc_id = 1;

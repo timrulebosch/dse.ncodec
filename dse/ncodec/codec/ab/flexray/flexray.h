@@ -20,8 +20,7 @@ typedef struct FlexrayNodeState {
     /* Per Node/NCodec instance. */
     NCodecPduFlexrayPocState         poc_state;
     NCodecPduFlexrayTransceiverState tcvr_state;
-
-    // FIXME: NCodecPduFlexrayBridgeMode how to trigger sync for a bridge node.
+    NCodecPduFlexrayBridgeMode       bridge_mode;
 } FlexrayNodeState;
 
 
@@ -31,8 +30,6 @@ typedef struct FlexrayState {
 
     /* The resultant bus_condition. */
     NCodecPduFlexrayTransceiverState bus_condition;
-
-    // FIXME: NCodecPduFlexrayBridgeMode how to trigger sync for a bridge node.
 } FlexrayState;
 
 
@@ -121,11 +118,16 @@ int process_poc_command(
 
 void register_node_state(FlexrayState* state,
     NCodecPduFlexrayNodeIdentifier nid, bool pwr_on, bool pwr_off);
+void register_bridge_node_state(FlexrayState* state,
+    NCodecPduFlexrayNodeIdentifier nid, NCodecPduFlexrayBridgeMode bridge_mode,
+    NCodecPduFlexrayPocState         poc_state,
+    NCodecPduFlexrayTransceiverState tcvr_state);
 void register_vcn_node_state(
     FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid);
 void release_state(FlexrayState* state);
 void push_node_state(FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid,
-    NCodecPduFlexrayPocCommand command);
+    NCodecPduFlexrayPocCommand command, NCodecPduFlexrayPocState poc_state,
+    NCodecPduFlexrayTransceiverState tcvr_state);
 void calculate_bus_condition(FlexrayState* state);
 FlexrayNodeState get_node_state(
     FlexrayState* state, NCodecPduFlexrayNodeIdentifier nid);

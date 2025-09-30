@@ -66,6 +66,13 @@ typedef struct {
 
         size_t cycles;
         size_t steps;
+
+        struct {
+            bool                             set_bridge_state;
+            size_t                           node_idx;
+            NCodecPduFlexrayPocState         poc_state;
+            NCodecPduFlexrayTransceiverState tcvr_state;
+        } bridge;
     } run;
 
     /* Expect */

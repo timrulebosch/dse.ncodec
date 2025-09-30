@@ -348,6 +348,7 @@ static int AutomotiveBus_Stream_Pdu_FlexrayConfig_verify_table(flatcc_table_veri
     if ((ret = flatcc_verify_table_field(td, 21, 0, &AutomotiveBus_Stream_Pdu_FlexrayLpdu_verify_table) /* key_slot_lpdu */)) return ret;
     if ((ret = flatcc_verify_table_vector_field(td, 22, 0, &AutomotiveBus_Stream_Pdu_FlexrayLpduConfig_verify_table) /* frame_table */)) return ret;
     if ((ret = flatcc_verify_field(td, 23, 1, 1) /* config_op */)) return ret;
+    if ((ret = flatcc_verify_field(td, 24, 1, 1) /* bridge_mode */)) return ret;
     return flatcc_verify_ok;
 }
 

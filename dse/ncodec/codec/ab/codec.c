@@ -74,6 +74,7 @@ void free_codec(ABCodecInstance* _nc)
     if (_nc->vcn_count_str) free(_nc->vcn_count_str);
     if (_nc->poc_state_cha_str) free(_nc->poc_state_cha_str);
     if (_nc->poc_state_chb_str) free(_nc->poc_state_chb_str);
+    if (_nc->bridge_mode) free(_nc->bridge_mode);
 
     if (_nc->fbs_builder_initalized) flatcc_builder_clear(&_nc->fbs_builder);
 
@@ -200,6 +201,11 @@ int32_t codec_config(NCODEC* nc, NCodecConfigItem item)
         _nc->poc_state_chb = strtoul(item.value, NULL, 10);
         return 0;
     }
+    if (strcmp(item.name, "bridge") == 0) {
+        if (_nc->bridge_mode) free(_nc->bridge_mode);
+        _nc->bridge_mode = strdup(item.value);
+        return 0;
+    }
 
     return -EINVAL;
 }
@@ -274,6 +280,10 @@ NCodecConfigItem codec_stat(NCODEC* nc, int32_t* index)
     case 14:
         name = "pocb";
         value = _nc->poc_state_chb_str;
+        break;
+    case 15:
+        name = "bridge";
+        value = _nc->bridge_mode;
         break;
     default:
         *index = -1;

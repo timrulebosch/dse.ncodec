@@ -83,6 +83,7 @@ typedef struct ABCodecInstance {
     char*   vcn_count_str;     /* Count of VCNs. */
     char*   poc_state_cha_str; /* Initial POC state (Channel A). */
     char*   poc_state_chb_str; /* Initial POC state (Channel B). */
+    char*   bridge_mode;       /* Bridge Mode (sync|nonsync or not set). */
     /* Internal representation. */
     uint8_t bus_id;
     uint8_t node_id;

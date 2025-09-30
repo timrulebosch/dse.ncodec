@@ -36,6 +36,19 @@ static void _decode_flexray_config(
     c->vcn[1].node.swc_id = 2;
     c->initial_poc_state_cha = ns(FlexrayConfig_initial_poc_state_cha(fc_msg));
     c->initial_poc_state_chb = ns(FlexrayConfig_initial_poc_state_chb(fc_msg));
+
+    switch (ns(FlexrayConfig_bridge_mode(fc_msg))) {
+    case ns(FlexrayBridgeMode_Sync):
+        c->bridge_mode = NCodecPduFlexrayBridgeModeSync;
+        break;
+    case ns(FlexrayBridgeMode_NonSync):
+        c->bridge_mode = NCodecPduFlexrayBridgeModeNonSync;
+        break;
+    default:
+        c->bridge_mode = NCodecPduFlexrayBridgeModeNone;
+        break;
+    }
+
     c->inhibit_null_frames = ns(FlexrayConfig_inhibit_null_frames(fc_msg));
     c->macrotick_per_cycle = ns(FlexrayConfig_macrotick_per_cycle(fc_msg));
     c->microtick_per_cycle = ns(FlexrayConfig_microtick_per_cycle(fc_msg));
@@ -178,6 +191,18 @@ static uint32_t _emit_flexray_config(flatcc_builder_t* B, NCodecPdu* _pdu)
     }
     ns(FlexrayConfig_initial_poc_state_cha_add(B, c->initial_poc_state_cha));
     ns(FlexrayConfig_initial_poc_state_chb_add(B, c->initial_poc_state_chb));
+
+    switch (c->bridge_mode) {
+    case NCodecPduFlexrayBridgeModeSync:
+        ns(FlexrayConfig_bridge_mode_add(B, ns(FlexrayBridgeMode_Sync)));
+        break;
+    case NCodecPduFlexrayBridgeModeNonSync:
+        ns(FlexrayConfig_bridge_mode_add(B, ns(FlexrayBridgeMode_NonSync)));
+        break;
+    default:
+        break;
+    }
+
     ns(FlexrayConfig_inhibit_null_frames_add(B, c->inhibit_null_frames));
     ns(FlexrayConfig_macrotick_per_cycle_add(B, c->macrotick_per_cycle));
     ns(FlexrayConfig_microtick_per_cycle_add(B, c->microtick_per_cycle));
