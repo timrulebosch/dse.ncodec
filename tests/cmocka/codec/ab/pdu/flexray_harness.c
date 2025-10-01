@@ -144,6 +144,8 @@ static void _push_nodes(TestTxRx* test)
                         .transport.flexray = {
                             .metadata_type = NCodecPduFlexrayMetadataTypeStatus,
                             .metadata.status = {
+                                .cycle = test->run.bridge.cycle,
+                                .macrotick = test->run.bridge.macrotick,
                                 .channel[0].tcvr_state =
                                     test->run.bridge.tcvr_state,
                                 .channel[0].poc_state =
@@ -325,12 +327,25 @@ static void _expect_status_check(TestTxRx* test)
         assert_int_equal(test->expect.macrotick,
             test->run.status_pdu[n_idx]
                 .transport.flexray.metadata.status.macrotick);
-        assert_int_equal(test->expect.poc_state,
-            test->run.status_pdu[n_idx]
+
+        if (test->expect.count == 0) {
+            assert_int_equal(test->expect.poc_state,
+                test->run.status_pdu[n_idx]
+                    .transport.flexray.metadata.status.channel[0]
+                    .poc_state);
+            assert_int_equal(test->expect.tcvr_state,
+                test->run.status_pdu[n_idx]
+                    .transport.flexray.metadata.status.channel[0]
+                    .tcvr_state);
+        }
+    }
+    for (size_t i = 0; i < test->expect.count; i++) {
+        assert_int_equal(test->expect.condition[i].poc_state,
+            test->run.status_pdu[i]
                 .transport.flexray.metadata.status.channel[0]
                 .poc_state);
-        assert_int_equal(test->expect.tcvr_state,
-            test->run.status_pdu[n_idx]
+        assert_int_equal(test->expect.condition[i].tcvr_state,
+            test->run.status_pdu[i]
                 .transport.flexray.metadata.status.channel[0]
                 .tcvr_state);
     }

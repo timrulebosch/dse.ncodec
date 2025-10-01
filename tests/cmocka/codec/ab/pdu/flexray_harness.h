@@ -47,6 +47,10 @@ typedef struct TestPduList {
     size_t  count;
     TestPdu list[TEST_PDUS];
 } TestPduList;
+typedef struct ExpectCondition {
+    NCodecPduFlexrayPocState         poc_state;
+    NCodecPduFlexrayTransceiverState tcvr_state;
+} ExpectCondition;
 
 typedef struct {
     /* Config */
@@ -72,6 +76,8 @@ typedef struct {
             size_t                           node_idx;
             NCodecPduFlexrayPocState         poc_state;
             NCodecPduFlexrayTransceiverState tcvr_state;
+            uint8_t                          cycle;
+        uint16_t                         macrotick;
         } bridge;
     } run;
 
@@ -82,6 +88,10 @@ typedef struct {
         uint16_t                         macrotick;
         NCodecPduFlexrayPocState         poc_state;
         NCodecPduFlexrayTransceiverState tcvr_state;
+
+        /* Alternative, if count is set. */
+        size_t          count;
+        ExpectCondition condition[TEST_NODES];
 
         TestPduList pdu;
     } expect;

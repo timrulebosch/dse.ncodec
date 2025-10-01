@@ -54,7 +54,7 @@ bool flexray_bus_model_consume(ABCodecBusModel* bm, NCodecPdu* pdu)
             pdu->transport.flexray.metadata.config.initial_poc_state_cha);
         break;
     case (NCodecPduFlexrayMetadataTypeStatus):
-        log_debug("FlexRay%s: Consume: (%u:%u:%u) Status", m->log_id,
+        log_error("FlexRay%s: Consume: (%u:%u:%u) Status", m->log_id,
             node_ident.node.ecu_id, node_ident.node.cc_id,
             node_ident.node.swc_id);
         // TODO: state needs to be an array for CHA CHB

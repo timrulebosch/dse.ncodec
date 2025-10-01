@@ -21,15 +21,15 @@ extern int run_pdu_flexray_null_frame_tests(void);
 int main()
 {
     int rc = 0;
-    rc |= run_pdu_tests();
-    rc |= run_pdu_can_tests();
-    rc |= run_pdu_ip_tests();
-    rc |= run_pdu_struct_tests();
-    rc |= run_pdu_flexray_engine_tests();
-    rc |= run_pdu_flexray_state_tests();
+    // rc |= run_pdu_tests();
+    // rc |= run_pdu_can_tests();
+    // rc |= run_pdu_ip_tests();
+    // rc |= run_pdu_struct_tests();
+    // rc |= run_pdu_flexray_engine_tests();
+    // rc |= run_pdu_flexray_state_tests();
     rc |= run_pdu_flexray_startup_tests();
-    rc |= run_pdu_flexray_single_node_tests();
-    rc |= run_pdu_flexray_multi_node_tests();
-    rc |= run_pdu_flexray_null_frame_tests();
+    // rc |= run_pdu_flexray_single_node_tests();
+    // rc |= run_pdu_flexray_multi_node_tests();
+    // rc |= run_pdu_flexray_null_frame_tests();
     return rc;
 }

@@ -176,7 +176,6 @@ static TestNode testnode_bridge_sync = (TestNode){
         "interface=stream;type=pdu;schema=fbs;"                                \
         "ecu_id=2;model=flexray;bridge=sync",
     .config = {
-     //   .node_ident.node_id = 2,
         .bit_rate = NCodecPduFlexrayBitrate10,
         .channel_enable = NCodecPduFlexrayChannelA,
         .coldstart_node = false,
@@ -192,7 +191,6 @@ static TestNode testnode_bridge_nonsync = (TestNode){
         "interface=stream;type=pdu;schema=fbs;"                                \
         "ecu_id=3;model=flexray;bridge=nonsync",
     .config = {
-     //   .node_ident.node_id = 3,
         .bit_rate = NCodecPduFlexrayBitrate10,
         .channel_enable = NCodecPduFlexrayChannelA,
         .coldstart_node = false,
@@ -203,18 +201,98 @@ static TestNode testnode_bridge_nonsync = (TestNode){
     },
 };
 
-
-/* Bridge Mode == Sync; NCodec follows Bridge Node state. */
-void bridge_sync__no_signal(void** state)
+void bridge_sync__no_signal__0vcn(void** state)
 {
-    Mock* mock = *state;
-    skip();
+    /* Bridge has No Signal, NCodec has 0 VCN, should follow Bridge. */
+    Mock*     mock = *state;
+    TestTxRx* test = &mock->test;
+    int       rc;
+    //__log_level__ = LOG_DEBUG;
+    *test = (TestTxRx){
+        .config = {
+            .node = {
+                 testnode_0vcn,
+                 testnode_bridge_sync,
+            },
+            .frame_table = {
+            },
+        },
+        .run = {
+            .push_active = true, /* Node will go to FrameError, then take sync from bridge. */
+            .steps = 1,
+            .bridge = {
+                .set_bridge_state = true, /* Set for sync node. */
+                .node_idx = 1, /* Index into config.node[] for the bridge. */
+                .poc_state = NCodecPduFlexrayPocStateConfig,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateNoConnection,
+            },
+        },
+        .expect = {
+            /* Set from bridge node (sync mode). */
+            .cycle = 0,
+            .macrotick = 0,
+            .count = 2,
+            .condition = {
+                {
+                    .poc_state = NCodecPduFlexrayPocStateNormalPassive,
+                    .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
+                },
+                {
+                    .poc_state = NCodecPduFlexrayPocStateConfig,
+                    .tcvr_state = NCodecPduFlexrayTransceiverStateNoConnection,
+                },
+            },
+        }
+    };
+
+    flexray_harness_run_test(test);
 }
 
-void bridge_sync__frame_error(void** state)
+void bridge_sync__frame_error__0vcn(void** state)
 {
-    Mock* mock = *state;
-    skip();
+    /* Bridge has No Signal, NCodec has 0 VCN, should follow Bridge. */
+    Mock*     mock = *state;
+    TestTxRx* test = &mock->test;
+    int       rc;
+    //__log_level__ = LOG_DEBUG;
+    *test = (TestTxRx){
+        .config = {
+            .node = {
+                 testnode_0vcn,
+                 testnode_bridge_sync,
+            },
+            .frame_table = {
+            },
+        },
+        .run = {
+            .push_active = true, /* Node will go to FrameError, then take sync from bridge. */
+            .steps = 1,
+            .bridge = {
+                .set_bridge_state = true, /* Set for sync node. */
+                .node_idx = 1, /* Index into config.node[] for the bridge. */
+                .poc_state = NCodecPduFlexrayPocStateNormalPassive,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
+            },
+        },
+        .expect = {
+            /* Set from bridge node (sync mode). */
+            .cycle = 0,
+            .macrotick = 0,
+            .count = 2,
+            .condition = {
+                {
+                    .poc_state = NCodecPduFlexrayPocStateNormalPassive,
+                    .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
+                },
+                {
+                    .poc_state = NCodecPduFlexrayPocStateNormalPassive,
+                    .tcvr_state = NCodecPduFlexrayTransceiverStateFrameError,
+                },
+            },
+        }
+    };
+
+    flexray_harness_run_test(test);
 }
 
 void bridge_sync__frame_sync__0vcn(void** state)
@@ -223,7 +301,7 @@ void bridge_sync__frame_sync__0vcn(void** state)
     Mock*     mock = *state;
     TestTxRx* test = &mock->test;
     int       rc;
-    __log_level__ = LOG_DEBUG;
+    //__log_level__ = LOG_DEBUG;
     *test = (TestTxRx){
         .config = {
             .node = {
@@ -255,15 +333,57 @@ void bridge_sync__frame_sync__0vcn(void** state)
     flexray_harness_run_test(test);
 }
 
-void bridge_sync__frame_sync__delay__0vcn(void** state)
+void bridge_sync__frame_sync__skew__0vcn(void** state)
 {
-    // Delay bridge poc state.
+    /* Bridge has No Signal, NCodec has 0 VCN, should follow Bridge. */
+    Mock*     mock = *state;
+    TestTxRx* test = &mock->test;
+    int       rc;
+    __log_level__ = LOG_DEBUG;
+    *test = (TestTxRx){
+        .config = {
+            .node = {
+                 testnode_0vcn,
+                 testnode_bridge_sync,
+            },
+            .frame_table = {
+            },
+        },
+        .run = {
+            .push_active = true, /* Node will go to FrameError, then take sync from bridge. */
+            .steps = 1,
+            .bridge = {
+                .set_bridge_state = true, /* Set for sync node. */
+                .node_idx = 1, /* Index into config.node[] for the bridge. */
+                .poc_state = NCodecPduFlexrayPocStateNormalActive,
+                .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                .cycle = 5,
+                .macrotick = 770,
+            },
+        },
+        .expect = {
+            /* Set from bridge node (sync mode). */
+            .cycle = 5,
+            .macrotick = 770,
+            .count = 2,
+            .condition = {
+                {
+                    .poc_state = NCodecPduFlexrayPocStateNormalActive,
+                    .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                },
+                {
+                    .poc_state = NCodecPduFlexrayPocStateNormalActive,
+                    .tcvr_state = NCodecPduFlexrayTransceiverStateFrameSync,
+                },
+            },
+        }
+    };
 
-    // also, node is frameerror, bus state should be sync .. but node not.
+    flexray_harness_run_test(test);
 }
 
 
-void bridge_nonsync__vcn_2(void** state)
+void bridge_sync__no_signal__2vcn(void** state)
 {
     Mock* mock = *state;
     skip();
@@ -271,7 +391,7 @@ void bridge_nonsync__vcn_2(void** state)
     // Check the bridge node state
 }
 
-void bridge_nonsync__vcn_2__push_active(void** state)
+void bridge_sync__frame_sync__2vcn(void** state)
 {
     Mock* mock = *state;
     skip();
@@ -290,13 +410,13 @@ int run_pdu_flexray_startup_tests(void)
         T(vcn_2_normalactive, s, t),
         T(vcn_2_poc_set_normalactive, s, t),
 
-        T(bridge_sync__no_signal, s, t),
-        T(bridge_sync__frame_error, s, t),
+        T(bridge_sync__no_signal__0vcn, s, t),
+        T(bridge_sync__frame_error__0vcn, s, t),
         T(bridge_sync__frame_sync__0vcn, s, t),
+        T(bridge_sync__frame_sync__skew__0vcn, s, t),
 
-
-        T(bridge_nonsync__vcn_2, s, t),
-        T(bridge_nonsync__vcn_2__push_active, s, t),
+        T(bridge_sync__no_signal__2vcn, s, t),
+        T(bridge_sync__frame_sync__2vcn, s, t),
     };
 
     return cmocka_run_group_tests_name(
